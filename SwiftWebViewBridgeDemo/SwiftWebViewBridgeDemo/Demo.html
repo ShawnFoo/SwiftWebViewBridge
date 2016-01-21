@@ -67,15 +67,13 @@
             bridge.init(function(message, responseCallback) {
                 log('JS got a message', message)
                 var data = { 'JS Responds' : 'Message received = )' }
-                log('JS respond to Swift with', data)
                 responseCallback(data)
             })
 
             bridge.registerHandlerForSwift('alertReceivedParmas', function(data, responseCallback) {
-                log('ObjC called alertPassinParmas with', data)
-                alert(data)
+                log('ObjC called alertPassinParmas with', JSON.stringify(data))
+                alert(JSON.stringify(data))
                 var responseData = { 'JS Responds' : 'alert triggered' }
-                log('JS responding with', responseData)
                 responseCallback(responseData)
             })
 
