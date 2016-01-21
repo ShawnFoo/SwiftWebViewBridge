@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+    <title>SwiftJavaScriptBridgeDemo</title>
+	<style type='text/css'>
+        .container {
+            text-align: center;
+        }
+		h1 { 
+            color:gray; 
+            font-size:24px;
+        }
+		button { 
+            margin:0 3px 10px; 
+            font-size:15px; 
+        }
+		.logLine { 
+            border-bottom:1px solid #ccc; 
+            padding:4px 4px; 
+            font-size:12px; 
+        }
+	</style>
+</head>
+<body>
+    <script>
+        window.log = (function(){
+            var uniqueId = 1;
+            function log(message, data) {
+
+                var logElem = document.getElementById("logContainer");
+                var newElem = document.createElement("div");
+                newElem.className = "logLine";
+
+                if (data) {
+                    console.log(message + ":<br/>" + data);
+                    newElem.innerHTML = uniqueId++ + '. ' + message + ':<br/>' + JSON.stringify(data)
+                }
+                else {
+                    console.log(message); 
+                    newElem.innerHTML = uniqueId++ + '. ' + message 
+                }
+                if (logElem.children.length) {
+                    logElem.insertBefore(newElem, logElem.children[0]);
+                }
+                else {
+                    logElem.appendChild(newElem);
+                }
+            }
+            return {_log: log}
+        })()._log;
+
+        window.onerror = function(err) {
+            log("window.onerror: " + err)
+        }
+
+        function connectToSwiftWebViewBridge(callback) {
+            if (window.SwiftWebViewBridge) {
+                callback(SwiftWebViewBridge)
+            } else {
+                document.addEventListener('SwiftWebViewBridgeReady', function() {
+                    callback(SwiftWebViewBridge)
+                }, false)
+            }
+        }
+
+        connectToSwiftWebViewBridge(function(bridge) {
+            bridge.init(function(message, responseCallback) {
+                log('JS got a message', message)
+                var data = { 'JS Responds' : 'Message received = )' }
+                log('JS respond to Swift with', data)
+                responseCallback(data)
+            })
+
+            bridge.registerHandlerForSwift('alertReceivedParmas', function(data, responseCallback) {
+                log('ObjC called alertPassinParmas with', data)
+                alert(data)
+                var responseData = { 'JS Responds' : 'alert triggered' }
+                log('JS responding with', responseData)
+                responseCallback(responseData)
+            })
+
+            window.testSendDataToSwift = function() {
+                bridge.sendDataToSwift( 'Say Hello Swiftly to Swift' )
+            }
+        });
+
+        function testSendDataToSwiftWithCallback() {
+            SwiftWebViewBridge.sendDataToSwift( 'Hi, anybody there?' , function(responseData){
+                alert("got your response: " + JSON.stringify(responseData))
+            })
+        }
+
+        function testCallSwiftHandler() {
+            data = {"name": "小明", "age": "6", "school": "GDUT"}
+            log('JS is calling printReceivedParmas handler of Swift', data)
+            SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", data, null)
+        }
+
+        function testCallSwiftHandlerWithCallback() {
+            SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", {"name": "小明", "age": "6", "school": "GDUT"}, function(responseData){
+                log('JS got responds from Swift: ', responseData)
+            })
+        }
+
+    </script>
+    
+    <div class="container">
+        <h1>SwiftJavaScriptBridgeDemo</h1>
+        <button type="button" onclick="document.getElementById('logContainer').innerHTML = ''">Clear Log</button>
+        <br/>
+        <button type="button" onclick="testSendDataToSwift()">testSendDataToSwift</button>
+        <br/>
+        <button type="button" onclick="testSendDataToSwiftWithCallback()">testSendDataToSwiftWithCallback</button>
+        <br/>
+        <button type="button" onclick="testCallSwiftHandler()">testCallSwiftHandler</button>
+        <br/>
+        <button type="button" onclick="testCallSwiftHandlerWithCallback()">testCallSwiftHandlerWithCallback</button>
+        <br/>
+        <div id='logContainer'></div>
+    </div>
+</body>
+</html>
