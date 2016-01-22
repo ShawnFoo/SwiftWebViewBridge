@@ -264,16 +264,16 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
     */
     private func dispatchMessage(msg: SWVBMessage) {
 
-        if let jsonMsg: String = javascriptStylizedJSON(msg) {
+        if let jsonMsg: String = javascriptStylizedJSON(msg), wb = webView {
             
             swvb_printLog(.SENT(jsonMsg))
             let jsCommand = "SwiftWebViewBridge._handleMessageFromSwift('\(jsonMsg)')"
             if NSThread.isMainThread() {
-                webView?.stringByEvaluatingJavaScriptFromString(jsCommand)
+                wb.stringByEvaluatingJavaScriptFromString(jsCommand)
             }
             else {
                 dispatch_sync(dispatch_get_main_queue()) {
-                    self.webView?.stringByEvaluatingJavaScriptFromString(jsCommand)
+                    wb.stringByEvaluatingJavaScriptFromString(jsCommand)
                 }
             }
         }

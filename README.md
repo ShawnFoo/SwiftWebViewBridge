@@ -7,7 +7,13 @@ Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebVi
 
 1. Xcode7.0+
 2. iOS7.0+
-3. [SwiftyJSON](https://github.com/SwiftyJSON/SwiftyJSON)(The communication between Swift and JS depends on JSON messages.The SwiftyJSON.swift file includes in SwiftWebViewBridge document.If you have imported it by other ways, you could remove it.)
+3. [SwiftyJSON](https://github.com/SwiftyJSON/SwiftyJSON)(The communication between Swift and JS depends on JSON messages.)
+
+
+---
+##Installation(Manually)
+
+Drag SwiftWebViewBridge document or three files in it to your project. If If you have imported SwiftyJSON by adding SwiftyJSON.swift file or Cocoapods etc, you could remove SwiftyJSON.swift in SwiftWebViewBridge.
 
 ---
 ##How to use it:
@@ -110,3 +116,4 @@ SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", {"name": "小明", "a
 	log('JS got responds from Swift: ', responseData)
 })
 ```
+

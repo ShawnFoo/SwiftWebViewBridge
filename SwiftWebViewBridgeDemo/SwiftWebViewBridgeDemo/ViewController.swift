@@ -45,6 +45,7 @@ class ViewController: UIViewController, UIWebViewDelegate {
             return
         }
         bridge = bg
+//        SwiftJavaScriptBridge.logging = false
         
         bridge.registerHandlerForJS(handlerName: "printReceivedParmas", handler: { [unowned self] data, responseCallback in
             
