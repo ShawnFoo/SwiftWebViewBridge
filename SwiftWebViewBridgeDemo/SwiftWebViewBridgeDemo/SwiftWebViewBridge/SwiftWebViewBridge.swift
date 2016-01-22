@@ -26,7 +26,9 @@ private enum LogType: CustomStringConvertible {
     }
 }
 
+/// 1st param: resonseData to JS
 public typealias SWVBResponseCallBack = AnyObject -> Void
+/// 1st param: data sent from JS; 2nd param: responseCallback for sending data back to JS
 public typealias SWVBHandler = (AnyObject, SWVBResponseCallBack) -> Void
 public typealias SWVBHandlerDic = [String: SWVBHandler]
 public typealias SWVBCallbackDic = [String: SWVBResponseCallBack]
@@ -85,6 +87,14 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
     
     // MARK: - Factory / Initilizers
     
+    /**
+    Generate a bridge with associated webView and default handler to deal with messages from js
+    
+    - parameter webView: the webView you
+    - parameter handler: default handler to deal with messages from js
+    
+    - returns: bridge
+    */
     public class func bridge(webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftJavaScriptBridge? {
         
         // load js

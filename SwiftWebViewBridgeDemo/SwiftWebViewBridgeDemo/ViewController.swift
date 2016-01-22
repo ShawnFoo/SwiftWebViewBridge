@@ -37,7 +37,7 @@ class ViewController: UIViewController, UIWebViewDelegate {
             
             print("Swift received message from JS: \(data)")
             
-            // Actually, this responseCallback could be an empty closure when javascript has no callback, so you do have to unwarp an optional params
+            // Actually, this responseCallback could be an empty closure when javascript has no callback, saving you from unwarping an optional parameter = )
             responseCallback("Swift already got your msg, thanks")
         }) else {
             
@@ -52,9 +52,10 @@ class ViewController: UIViewController, UIWebViewDelegate {
             // Because VC owned bridge, brige owned this closure, and this cloure captured self!
             self.printReceivedParmas(data)
             
-            // ["msg": "Swift has already finished its handler", "returnValue": [1, 2, 3]]
             responseCallback(["msg": "Swift has already finished its handler", "returnValue": [1, 2, 3]])
         })
+        
+        bridge.sendDataToJS(["msg": "Hello JavaScript", "gift": ["100CNY", "1000CNY", "10000CNY"]])
         
         loadLocalWebPage()
     }
