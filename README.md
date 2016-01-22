@@ -2,20 +2,16 @@
 
 Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) with more simplified, friendly methods to handle messages between Swift and JS in UIWebViews
 
----
 ##Requirements
 
 1. Xcode7.0+
 2. iOS7.0+
 3. [SwiftyJSON](https://github.com/SwiftyJSON/SwiftyJSON)(The communication between Swift and JS depends on JSON messages.)
 
-
----
 ##Installation(Manually)
 
 Drag SwiftWebViewBridge document or three files in it to your project. If If you have imported SwiftyJSON by adding SwiftyJSON.swift file or Cocoapods etc, you could remove SwiftyJSON.swift in SwiftWebViewBridge.
 
----
 ##How to use it:
 
 ###General
