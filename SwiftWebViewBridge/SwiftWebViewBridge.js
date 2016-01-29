@@ -5,8 +5,8 @@
 	var startupRCVDMessageQueue = []
 	var messageHandlers = {}
 	
-	var CUSTOM_PROTOCOL_SCHEME = 'WVJBScheme'
-	var CUSTOM_PROTOCOL_HOST = '__WVJB_Host_MESSAGE__'
+	var CUSTOM_PROTOCOL_SCHEME = 'swvbscheme'
+	var CUSTOM_PROTOCOL_HOST = '__SWVB_Host_MESSAGE__'
 	
 	var responseCallbacks = {}
 	var uniqueId = 1
@@ -21,7 +21,7 @@
 
 	function init(defaultHandler) {
 		if (SwiftWebViewBridge._defaultHandler) { throw new Error('SwiftWebViewBridge.init called twice') }
-		SwiftWebViewBridge._defaultHandler = messageHandler
+		SwiftWebViewBridge._defaultHandler = defaultHandler
 
 		// handle msgs received before bridge init.(Swift starts sending msgs when all urls did load, inclued failed loadings)
 		var receivedMessages = startupRCVDMessageQueue
@@ -41,12 +41,12 @@
 	}
 
 	// Swift send message to this entrance
-	function _handleMessageFromSwift(messageJSON) {
+	function _handleMessageFromSwift(jsonMsg) {
 		if (startupRCVDMessageQueue) {
-			startupRCVDMessageQueue.push(messageJSON)
+			startupRCVDMessageQueue.push(jsonMsg)
 		} 
 		else {
-			dispatchMessageFromSwift(messageJSON)
+			dispatchMessageFromSwift(jsonMsg)
 		}
 	}
 
@@ -57,7 +57,7 @@
 	}
   
     function callSwiftHandler(handlerName, data, responseCallback) {
-        var message = ( handlerName!=null && handlerName!=undefined ) ? { handlerName:handlerName, data:data } : { data:data}
+        var message = handlerName ? { handlerName:handlerName, data:data } : { data:data}
         if (responseCallback) {
             var callbackId = 'cb_'+(uniqueId++)+'_JS_'+new Date().getTime()
             responseCallbacks[callbackId] = responseCallback
@@ -73,18 +73,19 @@
 
 	// Message Manage
 
-	function dispatchMessageFromSwift(messageJSON) {
+	function dispatchMessageFromSwift(jsonMsg) {
 		setTimeout(function timeoutDispatchMessageFromSwift() {
-			var message = JSON.parse(messageJSON)
-			var messageHandler
-			var responseCallback
 
+			var message = JSON.parse(jsonMsg)
+			var responseCallback
+			
 			// JS callback(after Swift finished designated handler called by JS)
 			if (message.responseId) {
 				responseCallback = responseCallbacks[message.responseId]
-				if (!responseCallback) { return; }
-				responseCallback(message.responseData)
-				delete responseCallbacks[message.responseId]
+				if (responseCallback) {
+					responseCallback(message.responseData)
+					delete responseCallbacks[message.responseId]
+				}
 			} 
 			else {// Swift call JS handler
 
@@ -101,14 +102,19 @@
 				if (message.handlerName) {
 					handler = messageHandlers[message.handlerName]
 				}
-				
-				try {
-					handler(message.data, responseCallback)
-				} 
-				catch(exception) {
-					if (typeof console != 'undefined') {
-						console.log("SwiftWebViewBridge: WARNING: javascript handler threw.", message, exception)
+
+				if (handler) {
+					try {
+						handler(message.data, responseCallback)
+					} 
+					catch(exception) {
+						if (typeof console != 'undefined') {
+							console.log("SwiftWebViewBridge: WARNING: javascript handler threw.", message, exception)
+						}
 					}
+				}
+				else {
+					onerror("No defaultHandler!")
 				}
 			}
 		})
@@ -126,8 +132,8 @@
 
 	var doc = document
 	createHiddenIframe(doc)
-	// dispatch event for the listener after bridge created in c
-	var readyEvent = doc.createEvent('Events')
+	// dispatch event for the listener
+    var readyEvent = doc.createEvent('Events')
 	readyEvent.initEvent('SwiftWebViewBridgeReady')
 	doc.dispatchEvent(readyEvent)
 })();

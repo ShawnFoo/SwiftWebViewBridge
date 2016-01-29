@@ -7,18 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		656540081C5B4FC600642A22 /* SwiftWebViewBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 656540051C5B4FC600642A22 /* SwiftWebViewBridge.js */; };
+		656540091C5B4FC600642A22 /* SwiftWebViewBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656540061C5B4FC600642A22 /* SwiftWebViewBridge.swift */; };
+		6565400A1C5B4FC600642A22 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656540071C5B4FC600642A22 /* SwiftyJSON.swift */; };
 		658B54F91C4F6F57002EDAF8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658B54F81C4F6F57002EDAF8 /* AppDelegate.swift */; };
 		658B54FB1C4F6F57002EDAF8 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658B54FA1C4F6F57002EDAF8 /* ViewController.swift */; };
 		658B54FE1C4F6F57002EDAF8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 658B54FC1C4F6F57002EDAF8 /* Main.storyboard */; };
 		658B55001C4F6F57002EDAF8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 658B54FF1C4F6F57002EDAF8 /* Assets.xcassets */; };
 		658B55031C4F6F57002EDAF8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 658B55011C4F6F57002EDAF8 /* LaunchScreen.storyboard */; };
-		658B550E1C4F6F7E002EDAF8 /* SwiftWebViewBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 658B550B1C4F6F7E002EDAF8 /* SwiftWebViewBridge.js */; };
-		658B550F1C4F6F7E002EDAF8 /* SwiftWebViewBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658B550C1C4F6F7E002EDAF8 /* SwiftWebViewBridge.swift */; };
-		658B55101C4F6F7E002EDAF8 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658B550D1C4F6F7E002EDAF8 /* SwiftyJSON.swift */; };
 		658B55121C4F9636002EDAF8 /* Demo.html in Resources */ = {isa = PBXBuildFile; fileRef = 658B55111C4F9636002EDAF8 /* Demo.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		656540051C5B4FC600642A22 /* SwiftWebViewBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = SwiftWebViewBridge.js; sourceTree = "<group>"; };
+		656540061C5B4FC600642A22 /* SwiftWebViewBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftWebViewBridge.swift; sourceTree = "<group>"; };
+		656540071C5B4FC600642A22 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		658B54F51C4F6F57002EDAF8 /* SwiftWebViewBridgeDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftWebViewBridgeDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		658B54F81C4F6F57002EDAF8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		658B54FA1C4F6F57002EDAF8 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -26,9 +29,6 @@
 		658B54FF1C4F6F57002EDAF8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		658B55021C4F6F57002EDAF8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		658B55041C4F6F57002EDAF8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		658B550B1C4F6F7E002EDAF8 /* SwiftWebViewBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = SwiftWebViewBridge.js; sourceTree = "<group>"; };
-		658B550C1C4F6F7E002EDAF8 /* SwiftWebViewBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftWebViewBridge.swift; sourceTree = "<group>"; };
-		658B550D1C4F6F7E002EDAF8 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		658B55111C4F9636002EDAF8 /* Demo.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Demo.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -43,6 +43,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		656540041C5B4FC600642A22 /* SwiftWebViewBridge */ = {
+			isa = PBXGroup;
+			children = (
+				656540051C5B4FC600642A22 /* SwiftWebViewBridge.js */,
+				656540061C5B4FC600642A22 /* SwiftWebViewBridge.swift */,
+				656540071C5B4FC600642A22 /* SwiftyJSON.swift */,
+			);
+			name = SwiftWebViewBridge;
+			path = ../../SwiftWebViewBridge;
+			sourceTree = "<group>";
+		};
 		658B54EC1C4F6F57002EDAF8 = {
 			isa = PBXGroup;
 			children = (
@@ -62,7 +73,7 @@
 		658B54F71C4F6F57002EDAF8 /* SwiftWebViewBridgeDemo */ = {
 			isa = PBXGroup;
 			children = (
-				658B550A1C4F6F7E002EDAF8 /* SwiftWebViewBridge */,
+				656540041C5B4FC600642A22 /* SwiftWebViewBridge */,
 				658B54F81C4F6F57002EDAF8 /* AppDelegate.swift */,
 				658B54FA1C4F6F57002EDAF8 /* ViewController.swift */,
 				658B54FC1C4F6F57002EDAF8 /* Main.storyboard */,
@@ -72,16 +83,6 @@
 				658B55111C4F9636002EDAF8 /* Demo.html */,
 			);
 			path = SwiftWebViewBridgeDemo;
-			sourceTree = "<group>";
-		};
-		658B550A1C4F6F7E002EDAF8 /* SwiftWebViewBridge */ = {
-			isa = PBXGroup;
-			children = (
-				658B550B1C4F6F7E002EDAF8 /* SwiftWebViewBridge.js */,
-				658B550C1C4F6F7E002EDAF8 /* SwiftWebViewBridge.swift */,
-				658B550D1C4F6F7E002EDAF8 /* SwiftyJSON.swift */,
-			);
-			path = SwiftWebViewBridge;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -144,9 +145,9 @@
 			files = (
 				658B55031C4F6F57002EDAF8 /* LaunchScreen.storyboard in Resources */,
 				658B55121C4F9636002EDAF8 /* Demo.html in Resources */,
+				656540081C5B4FC600642A22 /* SwiftWebViewBridge.js in Resources */,
 				658B55001C4F6F57002EDAF8 /* Assets.xcassets in Resources */,
 				658B54FE1C4F6F57002EDAF8 /* Main.storyboard in Resources */,
-				658B550E1C4F6F7E002EDAF8 /* SwiftWebViewBridge.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -158,9 +159,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				658B54FB1C4F6F57002EDAF8 /* ViewController.swift in Sources */,
-				658B550F1C4F6F7E002EDAF8 /* SwiftWebViewBridge.swift in Sources */,
+				656540091C5B4FC600642A22 /* SwiftWebViewBridge.swift in Sources */,
 				658B54F91C4F6F57002EDAF8 /* AppDelegate.swift in Sources */,
-				658B55101C4F6F7E002EDAF8 /* SwiftyJSON.swift in Sources */,
+				6565400A1C5B4FC600642A22 /* SwiftyJSON.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -308,6 +309,7 @@
 				658B55091C4F6F57002EDAF8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
