@@ -11,20 +11,10 @@ import UIKit
 //If you have installed SwiftJSON by Cocoapods, etc. You can uncomment the import below, also delete SwiftyJSON.swift file in SwiftWebViewBridge doc
 //import SwiftJSON
 
-private enum LogType: CustomStringConvertible {
-    case ERROR(String), SENT(AnyObject), RCVD(AnyObject)
-    
-    var description: String {
-        switch self {
-        case let .ERROR(msg):
-            return "LOGGING_ERROR: \(msg)"
-        case let .SENT(msg):
-            return "LOGGING_SENT: \(msg)"
-        case let .RCVD(msg):
-            return "LOGGING_RCVD: \(msg)"
-        }
-    }
-}
+
+// MARK: - Custom Type
+
+//FIXME: Swift2.2 will change the keyword typealias to associatedtype
 
 /// 1st param: resonseData to JS
 public typealias SWVBResponseCallBack = AnyObject -> Void
@@ -34,9 +24,11 @@ public typealias SWVBHandlerDic = [String: SWVBHandler]
 public typealias SWVBCallbackDic = [String: SWVBResponseCallBack]
 public typealias SWVBMessage = [String: AnyObject]
 
-public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
+// MARK: - SwiftJavaScriptBridge
+
+public class SwiftJavaScriptBridge: NSObject {
     
-    // MARK: - Constants
+    // MARK: Constants
     
     private var kCustomProtocolScheme: String {
         return "swvbscheme" //lowercase!
@@ -54,7 +46,7 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
         return "SwiftWebViewBridge._fetchJSMessage();"
     }
     
-    // MARK: - Proporties
+    // MARK: Proporties
     
     public static var logging = true
     
@@ -85,7 +77,8 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
     // handlers for JS calling
     private lazy var messageHandlers: SWVBHandlerDic = SWVBHandlerDic()
     
-    // MARK: - Factory / Initilizers
+    
+    // MARK: Factory / Initilizers
     
     /**
     Generate a bridge with associated webView and default handler to deal with messages from js
@@ -105,7 +98,7 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
         
         var js: String?
         do {
-            js = try NSString.init(contentsOfFile: filePath, encoding: NSUTF8StringEncoding) as String
+            js = try String(contentsOfFile: filePath, encoding: NSUTF8StringEncoding)
         }
         catch let error as NSError {
             print("Error: Couldn't load js file: \(error)")
@@ -135,95 +128,11 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
         self.webView = webView
         self.javascript = javascript
     }
-    
-    // MARK: - WebViewDelegate Methods
-    
-    // It's the only entrance where JavaScript can call Swift/ObjC handler or callback.Every URL loading in any frames will trigger this method
-    public func webView(webView: UIWebView, shouldStartLoadWithRequest request: NSURLRequest, navigationType: UIWebViewNavigationType) -> Bool {
-        
-        if let url:NSURL = request.URL {
+}
 
-            if isSchemeCorrect(url) && isHostCorrect(url) {
-                // after JS trigger this method by loading URL, Swift needs to ask JS for messages by itself
-                if let jsonMessages = webView.stringByEvaluatingJavaScriptFromString(kJsFetchMessagesCommand) {
-                    
-                    handleMessagesFromJS(jsonMessages)
-                }
-                else {
-                    print("Didn't fetch any message from JS!")
-                }
-            }
-            else if let strongDelegate = originalDelegate as? UIWebViewDelegate {
-                
-                if let sholudLoad = strongDelegate.webView?(webView, shouldStartLoadWithRequest: request, navigationType: navigationType) {
+// MARK: - SwiftJavaScriptBridge + Message Manage
 
-                    return sholudLoad
-                }
-            }
-            
-            return true
-        }
-        
-        return false
-    }
-    
-    public func webViewDidStartLoad(webView: UIWebView) {
-
-        numOfLoadingRequests++
-        if let strongDelegate = originalDelegate as? UIWebViewDelegate {
-            strongDelegate.webViewDidStartLoad?(webView)
-        }
-    }
-    
-    public func webViewDidFinishLoad(webView: UIWebView) {
-        
-        numOfLoadingRequests--
-        // after all frames have loaded, starting to inject js and dispatch unhanlded message
-        if numOfLoadingRequests == 0 &&
-            "false" == webView.stringByEvaluatingJavaScriptFromString(kJsCheckObjectDefinedCommand)
-        {// make sure the js has not been injected or no duplicated SwiftWebViewBridge js object
-            
-            if let injectedJS = javascript {
-                
-                webView.stringByEvaluatingJavaScriptFromString(injectedJS)
-                
-                if webView.stringByEvaluatingJavaScriptFromString(kJsCheckObjectDefinedCommand) != "true" {
-                    print("Injection of js Failed!")
-                }
-                else {
-                    dispatchStartupMessageQueue()
-                }
-            }
-            else {
-                print("Didn't load the js file!")
-            }
-        }
-        
-        if let strongDelegate = originalDelegate as? UIWebViewDelegate {
-            strongDelegate.webViewDidFinishLoad?(webView)
-        }
-    }
-    
-    public func webView(webView: UIWebView, didFailLoadWithError error: NSError?) {
-        
-        if let strongDelegate = originalDelegate as? UIWebViewDelegate {
-            strongDelegate.webView?(webView, didFailLoadWithError: error)
-        }
-    }
-    
-    // MARK: - URL Checking
-    
-    private func isSchemeCorrect(url: NSURL) -> Bool {
-        
-        return url.scheme == self.kCustomProtocolScheme;
-    }
-    
-    private func isHostCorrect(url: NSURL) -> Bool {
-        
-        return url.host == self.kCustomProtocolHost;
-    }
-    
-    // MARK: - Message Manage
+extension SwiftJavaScriptBridge {
     
     // MARK: Message Sent To JS
     
@@ -248,7 +157,7 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
      Sending every message(send data or call handler) that happened before UIWebView did finish all loadings to JS one by one
      */
     private func dispatchStartupMessageQueue() {
-
+        
         if let queue = startupMessageQueue {
             for message in queue {
                 dispatchMessage(message)
@@ -258,12 +167,12 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
     }
     
     /**
-    Send message to JS. (Swift/ObjC call JS Handlers here)
-    
-    - parameter msg: message that will be sent to JS
-    */
+     Send message to JS. (Swift/ObjC call JS Handlers here)
+     
+     - parameter msg: message that will be sent to JS
+     */
     private func dispatchMessage(msg: SWVBMessage) {
-
+        
         if let jsonMsg: String = javascriptStylizedJSON(msg), wb = webView {
             
             swvb_printLog(.SENT(jsonMsg))
@@ -299,7 +208,7 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
                 
                 // Swift callback(after JS finished designated handler called by Swift)
                 if let responseId = msgDic["responseId"] as? String {
-
+                    
                     if let callback = jsCallbacks[responseId] {
                         
                         let responseData = msgDic["responseData"] != nil ? msgDic["responseData"] : NSNull()
@@ -316,7 +225,7 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
                     let callback:SWVBResponseCallBack = {
                         // if there is callbackId(that means JS has a callback), Swift send it back as responseId to JS so that JS can find and execute callback
                         if let callbackId: String = msgDic["callbackId"] as? String {
-
+                            
                             return { [unowned self] (responseData: AnyObject?) -> Void in
                                 
                                 let data:AnyObject = responseData != nil ? responseData! : NSNull()
@@ -327,27 +236,27 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
                         }
                         else {
                             return { (data: AnyObject?) -> Void in
-                            // emtpy closure, make sure callback closure param is non-optional
+                                // emtpy closure, make sure callback closure param is non-optional
                             }
                         }
                     }()
                     
                     let handler:SWVBHandler? = { [unowned self] in
-
+                        
                         if let handlerName = msgDic["handlerName"] as? String {
                             
                             return self.messageHandlers[handlerName]
                         }
                         
                         return self.defaultHandler
-                    }()
+                        }()
                     
                     guard let handlerClosure = handler else {
                         fatalError("No handler for msg from JS: \(msgDic)..Please at least create a default handler when initializing the bridge = )")
                     }
                     
                     let msgData = msgDic["data"] != nil ? msgDic["data"] : NSNull()
-                        
+                    
                     handlerClosure(msgData!, callback)
                 }
             }
@@ -356,8 +265,6 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
             }
         }
     }
-    
-    // MARK: - Interaction Between Swift/ObjC And JS
     
     // MARK: Swift Send Message To JS
     
@@ -414,31 +321,145 @@ public class SwiftJavaScriptBridge: NSObject, UIWebViewDelegate {
         
         messageHandlers[name] = handler
     }
+}
+
+// MARK: - SwiftJavaScriptBridge + WebViewDelegate
+
+extension SwiftJavaScriptBridge: UIWebViewDelegate {
     
-    // MARK: - Print Log
+    // It's the only entrance where JavaScript can call Swift/ObjC handler or callback.Every URL loading in any frames will trigger this method
+    public func webView(webView: UIWebView, shouldStartLoadWithRequest request: NSURLRequest, navigationType: UIWebViewNavigationType) -> Bool {
+        
+        if let url:NSURL = request.URL {
+            
+            if isSchemeCorrect(url) && isHostCorrect(url) {
+                // after JS trigger this method by loading URL, Swift needs to ask JS for messages by itself
+                if let jsonMessages = webView.stringByEvaluatingJavaScriptFromString(kJsFetchMessagesCommand) {
+                    
+                    handleMessagesFromJS(jsonMessages)
+                }
+                else {
+                    print("Didn't fetch any message from JS!")
+                }
+            }
+            else if let strongDelegate = originalDelegate as? UIWebViewDelegate {
+                
+                if let sholudLoad = strongDelegate.webView?(webView, shouldStartLoadWithRequest: request, navigationType: navigationType) {
+                    
+                    return sholudLoad
+                }
+            }
+            
+            return true
+        }
+        
+        return false
+    }
     
+    public func webViewDidStartLoad(webView: UIWebView) {
+        
+        numOfLoadingRequests++
+        if let strongDelegate = originalDelegate as? UIWebViewDelegate {
+            strongDelegate.webViewDidStartLoad?(webView)
+        }
+    }
+    
+    public func webViewDidFinishLoad(webView: UIWebView) {
+        
+        numOfLoadingRequests--
+        // after all frames have loaded, starting to inject js and dispatch unhanlded message
+        if numOfLoadingRequests == 0 &&
+            "false" == webView.stringByEvaluatingJavaScriptFromString(kJsCheckObjectDefinedCommand)
+        {// make sure the js has not been injected or no duplicated SwiftWebViewBridge js object
+            
+            if let injectedJS = javascript {
+                
+                webView.stringByEvaluatingJavaScriptFromString(injectedJS)
+                
+                if webView.stringByEvaluatingJavaScriptFromString(kJsCheckObjectDefinedCommand) != "true" {
+                    print("Injection of js Failed!")
+                }
+                else {
+                    dispatchStartupMessageQueue()
+                }
+            }
+            else {
+                print("Didn't load the js file!")
+            }
+        }
+        
+        if let strongDelegate = originalDelegate as? UIWebViewDelegate {
+            strongDelegate.webViewDidFinishLoad?(webView)
+        }
+    }
+    
+    public func webView(webView: UIWebView, didFailLoadWithError error: NSError?) {
+        
+        if let strongDelegate = originalDelegate as? UIWebViewDelegate {
+            strongDelegate.webView?(webView, didFailLoadWithError: error)
+        }
+    }
+    
+    // MARK: URL Checking
+    
+    private func isSchemeCorrect(url: NSURL) -> Bool {
+        
+        return url.scheme == self.kCustomProtocolScheme;
+    }
+    
+    private func isHostCorrect(url: NSURL) -> Bool {
+        
+        return url.host == self.kCustomProtocolHost;
+    }
+}
+
+// MARK: - SwiftJavaScriptBridge + Nested Enum
+
+extension SwiftJavaScriptBridge {
+    
+    private enum LogType: CustomStringConvertible {
+        
+        case ERROR(String), SENT(AnyObject), RCVD(AnyObject)
+        
+        var description: String {
+            switch self {
+            case let .ERROR(msg):
+                return "LOGGING_ERROR: \(msg)"
+            case let .SENT(msg):
+                return "LOGGING_SENT: \(msg)"
+            case let .RCVD(msg):
+                return "LOGGING_RCVD: \(msg)"
+            }
+        }
+    }
+    
+    // Print Log
     private func swvb_printLog(logType: LogType) {
         
         if SwiftJavaScriptBridge.logging {
             print(logType.description)
         }
     }
-    
-    // MARK: - JSON Serilization
+}
+
+// MARK: - SwiftJavaScriptBridge + JSON Serilization
+
+extension SwiftJavaScriptBridge {
     
     private func javascriptStylizedJSON(message: AnyObject) -> String? {
         
         if let jsonMsg: String = JSON(message).rawString(options: NSJSONWritingOptions()) {
             
-            var jsonStr = jsonMsg.stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
-            jsonStr = jsonStr.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
-            jsonStr = jsonStr.stringByReplacingOccurrencesOfString("\'", withString: "\\\'")
-            jsonStr = jsonStr.stringByReplacingOccurrencesOfString("\n", withString: "\\n")
-            jsonStr = jsonStr.stringByReplacingOccurrencesOfString("\r", withString: "\\r")
-            jsonStr = jsonStr.stringByReplacingOccurrencesOfString("\t", withString: "\\t")
-            jsonStr = jsonStr.stringByReplacingOccurrencesOfString("\u{2028}", withString: "\\u2028")// Line Seperator
-            jsonStr = jsonStr.stringByReplacingOccurrencesOfString("\u{2029}", withString: "\\u2029")// Paragraph Seperator
+            let jsonStr = jsonMsg.stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
+                .stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+                .stringByReplacingOccurrencesOfString("\'", withString: "\\\'")
+                .stringByReplacingOccurrencesOfString("\n", withString: "\\n")
+                .stringByReplacingOccurrencesOfString("\r", withString: "\\r")
+                .stringByReplacingOccurrencesOfString("\t", withString: "\\t")
+                .stringByReplacingOccurrencesOfString("\u{2028}", withString: "\\u2028")
+                .stringByReplacingOccurrencesOfString("\u{2029}", withString: "\\u2029")
             
+            //   \u2028: Line Seperator, 2029: Paragraph Seperator
             return jsonStr
         }
         

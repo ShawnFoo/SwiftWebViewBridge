@@ -2,6 +2,10 @@
 
 Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) with more simplified, friendly methods to handle messages between Swift and JS in UIWebViews
 
+##Preview
+
+![preview](http://g.picphotos.baidu.com/album/s%3D680%3Bq%3D90/sign=dd06ee0d044f78f0840b99fb490a7b68/b3b7d0a20cf431aded0433604c36acaf2fdd9890.jpg)
+
 ##Requirements
 
 1. Xcode7.0+

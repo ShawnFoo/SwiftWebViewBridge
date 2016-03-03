@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, UIWebViewDelegate {
+class ViewController: UIViewController {
     
     // already set delegate to current ViewController in storyboard
     @IBOutlet weak var webView: UIWebView!
@@ -30,6 +30,8 @@ class ViewController: UIViewController, UIWebViewDelegate {
     
     private var bridge: SwiftJavaScriptBridge!
 
+    // MARK: LifeCycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -44,7 +46,7 @@ class ViewController: UIViewController, UIWebViewDelegate {
             print("Error: initlizing bridge failed")
             return
         }
-        bridge = bg
+        self.bridge = bg
 //        SwiftJavaScriptBridge.logging = false
         
         bridge.registerHandlerForJS(handlerName: "printReceivedParmas", handler: { [unowned self] data, responseCallback in
@@ -56,14 +58,19 @@ class ViewController: UIViewController, UIWebViewDelegate {
             responseCallback(["msg": "Swift has already finished its handler", "returnValue": [1, 2, 3]])
         })
         
-        bridge.sendDataToJS(["msg": "Hello JavaScript", "gift": ["100CNY", "1000CNY", "10000CNY"]])
+        self.bridge.sendDataToJS(["msg": "Hello JavaScript", "gift": ["100CNY", "1000CNY", "10000CNY"]])
         
-        loadLocalWebPage()
+        self.loadLocalWebPage()
     }
+}
+
+// MARK: - ViewController + Actions
+
+extension ViewController {
     
     @IBAction func sendDataToJS(sender: AnyObject) {
         
-        bridge.sendDataToJS(["msg": "Hello JavaScript", "gift": ["100CNY", "1000CNY", "10000CNY"]])
+        self.bridge.sendDataToJS(["msg": "Hello JavaScript", "gift": ["100CNY", "1000CNY", "10000CNY"]])
         
         /* same effect as above, as you can see in SwiftWebViewBridge implementation
         bridge?.callJSHandler(nil, params: ["msg": "Hello JavaScript", "gift": "100CNY"], responseCallback: nil)
@@ -72,31 +79,44 @@ class ViewController: UIViewController, UIWebViewDelegate {
     
     @IBAction func sendDataToJSWithCallback(sender: AnyObject) {
         
-        bridge.sendDataToJS("Did you received my gift, JS?", responseCallback: { data in
-        
+        self.bridge.sendDataToJS("Did you received my gift, JS?", responseCallback: { data in
+            
             print("Receiving JS return gift: \(data)")
         })
     }
     
     @IBAction func callJSHandler(sender: AnyObject) {
         
-        bridge.callJSHandler("alertReceivedParmas", params: ["msg": "JS, are you there?"], responseCallback: nil)
+        self.bridge.callJSHandler("alertReceivedParmas", params: ["msg": "JS, are you there?"], responseCallback: nil)
     }
     
     @IBAction func callJSHandlerWithCallback(sender: AnyObject) {
         
-        bridge.callJSHandler("alertReceivedParmas", params: ["msg": "JS, I know you there!"]) { data in
-
+        self.bridge.callJSHandler("alertReceivedParmas", params: ["msg": "JS, I know you there!"]) { data in
+            
             print("Got response from js: \(data)")
         }
     }
     
-    func printReceivedParmas(data: AnyObject) {
+    @IBAction func reloadAction(sender: AnyObject) {
+        
+        self.numOfLoadingRequest = 0
+        self.webviewTitleLb.text = ""
+        self.loadingActivity.startAnimating()
+        self.sendDataToJSBt.enabled = false
+        self.sendDataToJSWithCallBackBt.enabled = false
+        self.callJSHandlerBt.enabled = false
+        self.callJSHandlerWithCallBackBt.enabled = false
+        self.reloadBtItem.enabled = false
+        self.webView.reload()
+    }
+    
+    private func printReceivedParmas(data: AnyObject) {
         
         print("Swift recieved data passed from JS: \(data)")
     }
     
-    func loadLocalWebPage() {
+    private func loadLocalWebPage() {
         
         guard let urlPath = NSBundle.mainBundle().URLForResource("Demo", withExtension: "html") else {
             
@@ -105,42 +125,32 @@ class ViewController: UIViewController, UIWebViewDelegate {
         }
         
         let request = NSURLRequest(URL: urlPath, cachePolicy: .ReloadIgnoringLocalCacheData, timeoutInterval: 10.0)
-        webView.loadRequest(request)
+        self.webView.loadRequest(request)
     }
+}
 
-    @IBAction func reloadAction(sender: AnyObject) {
-        
-        numOfLoadingRequest = 0
-        webviewTitleLb.text = ""
-        loadingActivity.startAnimating()
-        sendDataToJSBt.enabled = false
-        sendDataToJSWithCallBackBt.enabled = false
-        callJSHandlerBt.enabled = false
-        callJSHandlerWithCallBackBt.enabled = false
-        reloadBtItem.enabled = false
-        webView.reload()
-    }
+// MARK: - UIViewController + UIWebViewDelegate 
 
-    // MARK: - UIWebViewDelegate Method
+extension ViewController: UIWebViewDelegate {
     
     func webViewDidStartLoad(webView: UIWebView) {
         
-        numOfLoadingRequest++
+        self.numOfLoadingRequest++
     }
     
     func webViewDidFinishLoad(webView: UIWebView) {
-
-        numOfLoadingRequest--
         
-        if (numOfLoadingRequest == 0) {
+        self.numOfLoadingRequest--
+        
+        if (self.numOfLoadingRequest == 0) {
             
-            webviewTitleLb.text = webView.stringByEvaluatingJavaScriptFromString("document.title")
-            sendDataToJSBt.enabled = true
-            sendDataToJSWithCallBackBt.enabled = true
-            callJSHandlerBt.enabled = true
-            callJSHandlerWithCallBackBt.enabled = true
-            reloadBtItem.enabled = true
-            loadingActivity.stopAnimating()
+            self.webviewTitleLb.text = webView.stringByEvaluatingJavaScriptFromString("document.title")
+            self.sendDataToJSBt.enabled = true
+            self.sendDataToJSWithCallBackBt.enabled = true
+            self.callJSHandlerBt.enabled = true
+            self.callJSHandlerWithCallBackBt.enabled = true
+            self.reloadBtItem.enabled = true
+            self.loadingActivity.stopAnimating()
         }
     }
 }
