@@ -51,10 +51,9 @@ public class SwiftJavaScriptBridge: NSObject {
     public static var logging = true
     
     private weak var webView: UIWebView?
-    private weak var originalDelegate: AnyObject?
+    private weak var oriDelegate: AnyObject?
     private var numOfLoadingRequests = 0
     
-    private var javascript: String?
     // identity of the response callback
     private var uniqueId = 1
     // the queue stored messages called or sent before webView did finish load(js injection also finished in that function)
@@ -88,45 +87,28 @@ public class SwiftJavaScriptBridge: NSObject {
     
     - returns: bridge
     */
-    public class func bridge(webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftJavaScriptBridge? {
-        
-        // load js
-        guard let filePath = NSBundle.mainBundle().pathForResource("SwiftWebViewBridge", ofType: "js") else {
-            print("Error: Couldn't find SwiftWebViewBridge.js file in bundle, please check again")
-            return nil
-        }
-        
-        var js: String?
-        do {
-            js = try String(contentsOfFile: filePath, encoding: NSUTF8StringEncoding)
-        }
-        catch let error as NSError {
-            print("Error: Couldn't load js file: \(error)")
-            return nil
-        }
+    public class func bridge(webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftJavaScriptBridge {
         
         let bridge = SwiftJavaScriptBridge.init()
         
-        bridge.javascript = js
         bridge.webView = webView;
         // keep ref to original delegate
-        bridge.originalDelegate = webView.delegate
+        bridge.oriDelegate = webView.delegate
         // replace it
         bridge.webView!.delegate = bridge
         bridge.defaultHandler = handler
         
         return bridge
     }
-
+    
     private override init() {
         super.init()
     }
     
-    private convenience init(webView: UIWebView, javascript: String) {
+    private convenience init(webView: UIWebView) {
         self.init()
         
         self.webView = webView
-        self.javascript = javascript
     }
 }
 
@@ -143,13 +125,11 @@ extension SwiftJavaScriptBridge {
     */
     private func addToMessageQueue(msg: SWVBMessage) {
         
-        print(msg)
-        
-        if nil != startupMessageQueue {
-            startupMessageQueue!.append(msg)
+        if nil != self.startupMessageQueue {
+            self.startupMessageQueue!.append(msg)
         }
         else {
-            dispatchMessage(msg)
+            self.dispatchMessage(msg)
         }
     }
     
@@ -158,11 +138,11 @@ extension SwiftJavaScriptBridge {
      */
     private func dispatchStartupMessageQueue() {
         
-        if let queue = startupMessageQueue {
+        if let queue = self.startupMessageQueue {
             for message in queue {
-                dispatchMessage(message)
+                self.dispatchMessage(message)
             }
-            startupMessageQueue = nil
+            self.startupMessageQueue = nil
         }
     }
     
@@ -173,21 +153,21 @@ extension SwiftJavaScriptBridge {
      */
     private func dispatchMessage(msg: SWVBMessage) {
         
-        if let jsonMsg: String = javascriptStylizedJSON(msg), wb = webView {
+        if let jsonMsg: String = self.javascriptStylizedJSON(msg), webView = self.webView {
             
-            swvb_printLog(.SENT(jsonMsg))
+            self.swvb_printLog(.SENT(jsonMsg))
             let jsCommand = "SwiftWebViewBridge._handleMessageFromSwift('\(jsonMsg)')"
             if NSThread.isMainThread() {
-                wb.stringByEvaluatingJavaScriptFromString(jsCommand)
+                webView.stringByEvaluatingJavaScriptFromString(jsCommand)
             }
             else {
                 dispatch_sync(dispatch_get_main_queue()) {
-                    wb.stringByEvaluatingJavaScriptFromString(jsCommand)
+                    webView.stringByEvaluatingJavaScriptFromString(jsCommand)
                 }
             }
         }
         else {
-            swvb_printLog(.ERROR("Swift Object Serialization Failed: \(msg)"))
+            self.swvb_printLog(.ERROR("Swift Object Serialization Failed: \(msg)"))
         }
     }
     
@@ -196,7 +176,7 @@ extension SwiftJavaScriptBridge {
         
         guard let jsonObj:JSON = JSON.parse(jsonMessages), msgs = jsonObj.array else
         {
-            swvb_printLog(.ERROR("Deserilizing Received Msg From JS: \(jsonMessages)"))
+            self.swvb_printLog(.ERROR("Deserilizing Received Msg From JS: \(jsonMessages)"))
             return
         }
         
@@ -204,20 +184,20 @@ extension SwiftJavaScriptBridge {
             
             if let msgDic = msgJSON.dictionaryObject {
                 
-                swvb_printLog(.RCVD(msgDic))
+                self.swvb_printLog(.RCVD(msgDic))
                 
                 // Swift callback(after JS finished designated handler called by Swift)
                 if let responseId = msgDic["responseId"] as? String {
                     
-                    if let callback = jsCallbacks[responseId] {
+                    if let callback = self.jsCallbacks[responseId] {
                         
                         let responseData = msgDic["responseData"] != nil ? msgDic["responseData"] : NSNull()
                         
                         callback(responseData!)
-                        jsCallbacks.removeValueForKey(responseId)
+                        self.jsCallbacks.removeValueForKey(responseId)
                     }
                     else {
-                        swvb_printLog(.ERROR("No matching callback closure for: \(msgDic)"))
+                        self.swvb_printLog(.ERROR("No matching callback closure for: \(msgDic)"))
                     }
                 }
                 else { // JS call Swift Handler
@@ -261,7 +241,7 @@ extension SwiftJavaScriptBridge {
                 }
             }
             else {
-                swvb_printLog(.ERROR("JSON Object Deserilization Failed!"))
+                self.swvb_printLog(.ERROR("JSON Object Deserilization Failed!"))
             }
         }
     }
@@ -272,14 +252,14 @@ extension SwiftJavaScriptBridge {
     Sent data to JS simply
     */
     public func sendDataToJS(data: AnyObject) {
-        callJSHandler(nil, params: data, responseCallback: nil)
+        self.callJSHandler(nil, params: data, responseCallback: nil)
     }
     
     /**
      Send data to JS with callback closure
      */
     public func sendDataToJS(data: AnyObject, responseCallback: SWVBResponseCallBack?) {
-        callJSHandler(nil, params: data, responseCallback: responseCallback)
+        self.callJSHandler(nil, params: data, responseCallback: responseCallback)
     }
     
     /**
@@ -302,11 +282,11 @@ extension SwiftJavaScriptBridge {
         if let callback = responseCallback {
             // pass this Id to JS, and then after JS finish its handler, this Id will pass back to Swift as responseId, so Swift can use it to find and execute the matching callback
             let callbackId = "cb_\(uniqueId++)_Swift_\(NSDate().timeIntervalSince1970)"
-            jsCallbacks[callbackId] = callback
+            self.jsCallbacks[callbackId] = callback
             message["callbackId"] = callbackId
         }
         
-        addToMessageQueue(message)
+        self.addToMessageQueue(message)
     }
     
     // MARK: Rigister Handler For Message From JS
@@ -319,7 +299,7 @@ extension SwiftJavaScriptBridge {
     */
     public func registerHandlerForJS(handlerName name: String, handler:SWVBHandler) {
         
-        messageHandlers[name] = handler
+        self.messageHandlers[name] = handler
     }
 }
 
@@ -332,19 +312,19 @@ extension SwiftJavaScriptBridge: UIWebViewDelegate {
         
         if let url:NSURL = request.URL {
             
-            if isSchemeCorrect(url) && isHostCorrect(url) {
+            if self.isSchemeCorrect(url) && self.isHostCorrect(url) {
                 // after JS trigger this method by loading URL, Swift needs to ask JS for messages by itself
-                if let jsonMessages = webView.stringByEvaluatingJavaScriptFromString(kJsFetchMessagesCommand) {
+                if let jsonMessages = webView.stringByEvaluatingJavaScriptFromString(self.kJsFetchMessagesCommand) {
                     
-                    handleMessagesFromJS(jsonMessages)
+                    self.handleMessagesFromJS(jsonMessages)
                 }
                 else {
                     print("Didn't fetch any message from JS!")
                 }
             }
-            else if let strongDelegate = originalDelegate as? UIWebViewDelegate {
+            else if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
                 
-                if let sholudLoad = strongDelegate.webView?(webView, shouldStartLoadWithRequest: request, navigationType: navigationType) {
+                if let sholudLoad = oriDelegate.webView?(webView, shouldStartLoadWithRequest: request, navigationType: navigationType) {
                     
                     return sholudLoad
                 }
@@ -358,45 +338,43 @@ extension SwiftJavaScriptBridge: UIWebViewDelegate {
     
     public func webViewDidStartLoad(webView: UIWebView) {
         
-        numOfLoadingRequests++
-        if let strongDelegate = originalDelegate as? UIWebViewDelegate {
-            strongDelegate.webViewDidStartLoad?(webView)
+        self.numOfLoadingRequests++
+        if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
+            oriDelegate.webViewDidStartLoad?(webView)
         }
     }
     
     public func webViewDidFinishLoad(webView: UIWebView) {
         
-        numOfLoadingRequests--
+        self.numOfLoadingRequests--
         // after all frames have loaded, starting to inject js and dispatch unhanlded message
-        if numOfLoadingRequests == 0 &&
-            "false" == webView.stringByEvaluatingJavaScriptFromString(kJsCheckObjectDefinedCommand)
-        {// make sure the js has not been injected or no duplicated SwiftWebViewBridge js object
+        
+        let loadedAll = self.numOfLoadingRequests == 0
+        let noDefinedBridge = webView.stringByEvaluatingJavaScriptFromString(kJsCheckObjectDefinedCommand) == "false"
+
+        // make sure the js has not been injected or no duplicated SwiftWebViewBridge js object
+        if  loadedAll && noDefinedBridge {
             
-            if let injectedJS = javascript {
-                
-                webView.stringByEvaluatingJavaScriptFromString(injectedJS)
-                
-                if webView.stringByEvaluatingJavaScriptFromString(kJsCheckObjectDefinedCommand) != "true" {
-                    print("Injection of js Failed!")
-                }
-                else {
-                    dispatchStartupMessageQueue()
-                }
+            // inject js
+            webView.stringByEvaluatingJavaScriptFromString(self.loadMinifiedJS())
+            if webView.stringByEvaluatingJavaScriptFromString(kJsCheckObjectDefinedCommand) != "true" {
+                print("Injection of js Failed!")
             }
             else {
-                print("Didn't load the js file!")
+                self.dispatchStartupMessageQueue()
             }
         }
+
         
-        if let strongDelegate = originalDelegate as? UIWebViewDelegate {
-            strongDelegate.webViewDidFinishLoad?(webView)
+        if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
+            oriDelegate.webViewDidFinishLoad?(webView)
         }
     }
     
     public func webView(webView: UIWebView, didFailLoadWithError error: NSError?) {
         
-        if let strongDelegate = originalDelegate as? UIWebViewDelegate {
-            strongDelegate.webView?(webView, didFailLoadWithError: error)
+        if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
+            oriDelegate.webView?(webView, didFailLoadWithError: error)
         }
     }
     
@@ -464,5 +442,21 @@ extension SwiftJavaScriptBridge {
         }
         
         return nil
+    }
+}
+
+// MARK: - SwiftJavaScriptBridge + JS Loading
+
+extension SwiftJavaScriptBridge {
+    
+    /*
+    Since Swift can't define macro like this #define MultilineString(x) #x in Objective-C project..
+    This is only way I can imagine to load the text of javascript by minifying it..
+    If you have better ways to load js in Swift, please let me know, thanks a lot😄
+    */
+    
+    private func loadMinifiedJS() -> String {
+        
+        return ";(function(){if(window.SwiftWebViewBridge){return}var hiddenMessagingIframe;var unsentMessageQueue=[];var startupRCVDMessageQueue=[];var messageHandlers={};var CUSTOM_PROTOCOL_SCHEME='swvbscheme';var CUSTOM_PROTOCOL_HOST='__SWVB_Host_MESSAGE__';var responseCallbacks={};var uniqueId=1;function createHiddenIframe(doc){hiddenMessagingIframe=doc.createElement('iframe');hiddenMessagingIframe.style.display='none';hiddenMessagingIframe.src=CUSTOM_PROTOCOL_SCHEME+'://'+CUSTOM_PROTOCOL_HOST;doc.documentElement.appendChild(hiddenMessagingIframe)}function init(defaultHandler){if(SwiftWebViewBridge._defaultHandler){throw new Error('SwiftWebViewBridge.init called twice');}SwiftWebViewBridge._defaultHandler=defaultHandler;var receivedMessages=startupRCVDMessageQueue;startupRCVDMessageQueue=null;for(var i=0;i<receivedMessages.length;i++){dispatchMessageFromSwift(receivedMessages[i])}}function _fetchJSMessage(){var messageQueueString=JSON.stringify(unsentMessageQueue);unsentMessageQueue=[];return messageQueueString}function _handleMessageFromSwift(jsonMsg){if(startupRCVDMessageQueue){startupRCVDMessageQueue.push(jsonMsg)}else{dispatchMessageFromSwift(jsonMsg)}}function sendDataToSwift(data,responseCallback){callSwiftHandler(null,data,responseCallback)}function callSwiftHandler(handlerName,data,responseCallback){var message=handlerName?{handlerName:handlerName,data:data}:{data:data};if(responseCallback){var callbackId='cb_'+(uniqueId++)+'_JS_'+new Date().getTime();responseCallbacks[callbackId]=responseCallback;message['callbackId']=callbackId}unsentMessageQueue.push(message);hiddenMessagingIframe.src=CUSTOM_PROTOCOL_SCHEME+'://'+CUSTOM_PROTOCOL_HOST}function registerHandlerForSwift(handlerName,handler){messageHandlers[handlerName]=handler}function dispatchMessageFromSwift(jsonMsg){setTimeout(function timeoutDispatchMessageFromSwift(){var message=JSON.parse(jsonMsg);var responseCallback;if(message.responseId){responseCallback=responseCallbacks[message.responseId];if(responseCallback){responseCallback(message.responseData);delete responseCallbacks[message.responseId]}}else{if(message.callbackId){var callbackResponseId=message.callbackId;responseCallback=function(responseData){sendDataToSwift({responseId:callbackResponseId,responseData:responseData})}}var handler=SwiftWebViewBridge._defaultHandler;if(message.handlerName){handler=messageHandlers[message.handlerName]}if(handler){try{handler(message.data,responseCallback)}catch(exception){if(typeof console!='undefined'){console.log('SwiftWebViewBridge: WARNING: javascript handler threw.',message,exception)}}}else{onerror('No defaultHandler!')}}})}window.SwiftWebViewBridge={init:init,sendDataToSwift:sendDataToSwift,registerHandlerForSwift:registerHandlerForSwift,callSwiftHandler:callSwiftHandler,_fetchJSMessage:_fetchJSMessage,_handleMessageFromSwift:_handleMessageFromSwift};var doc=document;createHiddenIframe(doc);var readyEvent=doc.createEvent('Events');readyEvent.initEvent('SwiftWebViewBridgeReady');doc.dispatchEvent(readyEvent)})();"
     }
 }

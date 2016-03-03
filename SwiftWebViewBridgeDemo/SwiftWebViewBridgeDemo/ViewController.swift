@@ -8,6 +8,9 @@
 
 import UIKit
 
+// if you install SwiftWebViewBridge by Cocoapods, please remember to import it
+// import SwiftWebViewBridge
+
 class ViewController: UIViewController {
     
     // already set delegate to current ViewController in storyboard
@@ -29,38 +32,60 @@ class ViewController: UIViewController {
     private var numOfLoadingRequest = 0
     
     private var bridge: SwiftJavaScriptBridge!
-
+    
     // MARK: LifeCycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        guard let bg = SwiftJavaScriptBridge.bridge(webView, defaultHandler: { data, responseCallback in
+        self.bridge = SwiftJavaScriptBridge.bridge(webView, defaultHandler: { data, responseCallback in
             
             print("Swift received message from JS: \(data)")
             
             // Actually, this responseCallback could be an empty closure when javascript has no callback, saving you from unwarping an optional parameter = )
             responseCallback("Swift already got your msg, thanks")
-        }) else {
-            
-            print("Error: initlizing bridge failed")
-            return
-        }
-        self.bridge = bg
-//        SwiftJavaScriptBridge.logging = false
+        })
         
-        bridge.registerHandlerForJS(handlerName: "printReceivedParmas", handler: { [unowned self] data, responseCallback in
+        //  SwiftJavaScriptBridge.logging = false
+        
+        self.bridge.registerHandlerForJS(handlerName: "printReceivedParmas", handler: { [unowned self] data, responseCallback in
             
             // if you used self in any bridge handler/callback closure, remember to declare weak or unowned self, preventing from retaining cycle!
             // Because VC owned bridge, brige owned this closure, and this cloure captured self!
             self.printReceivedParmas(data)
             
             responseCallback(["msg": "Swift has already finished its handler", "returnValue": [1, 2, 3]])
-        })
+            })
         
         self.bridge.sendDataToJS(["msg": "Hello JavaScript", "gift": ["100CNY", "1000CNY", "10000CNY"]])
         
         self.loadLocalWebPage()
+    }
+}
+
+// MARK: - UIViewController + UIWebViewDelegate
+
+extension ViewController: UIWebViewDelegate {
+    
+    func webViewDidStartLoad(webView: UIWebView) {
+        
+        self.numOfLoadingRequest++
+    }
+    
+    func webViewDidFinishLoad(webView: UIWebView) {
+        
+        self.numOfLoadingRequest--
+        
+        if (self.numOfLoadingRequest == 0) {
+            
+            self.webviewTitleLb.text = webView.stringByEvaluatingJavaScriptFromString("document.title")
+            self.sendDataToJSBt.enabled = true
+            self.sendDataToJSWithCallBackBt.enabled = true
+            self.callJSHandlerBt.enabled = true
+            self.callJSHandlerWithCallBackBt.enabled = true
+            self.reloadBtItem.enabled = true
+            self.loadingActivity.stopAnimating()
+        }
     }
 }
 
@@ -126,32 +151,6 @@ extension ViewController {
         
         let request = NSURLRequest(URL: urlPath, cachePolicy: .ReloadIgnoringLocalCacheData, timeoutInterval: 10.0)
         self.webView.loadRequest(request)
-    }
-}
-
-// MARK: - UIViewController + UIWebViewDelegate 
-
-extension ViewController: UIWebViewDelegate {
-    
-    func webViewDidStartLoad(webView: UIWebView) {
-        
-        self.numOfLoadingRequest++
-    }
-    
-    func webViewDidFinishLoad(webView: UIWebView) {
-        
-        self.numOfLoadingRequest--
-        
-        if (self.numOfLoadingRequest == 0) {
-            
-            self.webviewTitleLb.text = webView.stringByEvaluatingJavaScriptFromString("document.title")
-            self.sendDataToJSBt.enabled = true
-            self.sendDataToJSWithCallBackBt.enabled = true
-            self.callJSHandlerBt.enabled = true
-            self.callJSHandlerWithCallBackBt.enabled = true
-            self.reloadBtItem.enabled = true
-            self.loadingActivity.stopAnimating()
-        }
     }
 }
 

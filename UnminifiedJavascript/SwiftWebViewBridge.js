@@ -109,12 +109,12 @@
 					} 
 					catch(exception) {
 						if (typeof console != 'undefined') {
-							console.log("SwiftWebViewBridge: WARNING: javascript handler threw.", message, exception)
+							console.log('SwiftWebViewBridge: WARNING: javascript handler threw.', message, exception)
 						}
 					}
 				}
 				else {
-					onerror("No defaultHandler!")
+					onerror('No defaultHandler!')
 				}
 			}
 		})

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		656540081C5B4FC600642A22 /* SwiftWebViewBridge.js in Resources */ = {isa = PBXBuildFile; fileRef = 656540051C5B4FC600642A22 /* SwiftWebViewBridge.js */; };
 		656540091C5B4FC600642A22 /* SwiftWebViewBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656540061C5B4FC600642A22 /* SwiftWebViewBridge.swift */; };
 		6565400A1C5B4FC600642A22 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656540071C5B4FC600642A22 /* SwiftyJSON.swift */; };
 		658B54F91C4F6F57002EDAF8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658B54F81C4F6F57002EDAF8 /* AppDelegate.swift */; };
@@ -19,7 +18,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		656540051C5B4FC600642A22 /* SwiftWebViewBridge.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = SwiftWebViewBridge.js; sourceTree = "<group>"; };
 		656540061C5B4FC600642A22 /* SwiftWebViewBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftWebViewBridge.swift; sourceTree = "<group>"; };
 		656540071C5B4FC600642A22 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		658B54F51C4F6F57002EDAF8 /* SwiftWebViewBridgeDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftWebViewBridgeDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -46,7 +44,6 @@
 		656540041C5B4FC600642A22 /* SwiftWebViewBridge */ = {
 			isa = PBXGroup;
 			children = (
-				656540051C5B4FC600642A22 /* SwiftWebViewBridge.js */,
 				656540061C5B4FC600642A22 /* SwiftWebViewBridge.swift */,
 				656540071C5B4FC600642A22 /* SwiftyJSON.swift */,
 			);
@@ -145,7 +142,6 @@
 			files = (
 				658B55031C4F6F57002EDAF8 /* LaunchScreen.storyboard in Resources */,
 				658B55121C4F9636002EDAF8 /* Demo.html in Resources */,
-				656540081C5B4FC600642A22 /* SwiftWebViewBridge.js in Resources */,
 				658B55001C4F6F57002EDAF8 /* Assets.xcassets in Resources */,
 				658B54FE1C4F6F57002EDAF8 /* Main.storyboard in Resources */,
 			);
