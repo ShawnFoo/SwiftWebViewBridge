@@ -11,7 +11,7 @@ Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebVi
 
 <h2 id="1">Preview</h2>
 
-![preview](http://ww3.sinaimg.cn/mw690/9161297cgw1f1k07xt0ylj20b90k0tay.jpg)
+![preview](http://ww3.sinaimg.cn/mw690/9161297cgw1f1kkmao1elj20b90k076h.jpg)
 
 <h2 id="2">Requirements</h2>
 
@@ -28,7 +28,7 @@ Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebVi
 	```
 	platform :ios, '8.0'
 	use_frameworks!	
-	'SwiftWebViewBridge', '~> 0.1.1'
+	pod 'SwiftWebViewBridge', '~> 0.1.1'
 	```
 2. Install the pod by running `pod install`
 3. import SwiftWebViewBridge

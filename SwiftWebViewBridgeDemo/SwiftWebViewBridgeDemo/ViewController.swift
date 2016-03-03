@@ -31,14 +31,14 @@ class ViewController: UIViewController {
     
     private var numOfLoadingRequest = 0
     
-    private var bridge: SwiftJavaScriptBridge!
+    private var bridge: SwiftWebViewBridge!
     
     // MARK: LifeCycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.bridge = SwiftJavaScriptBridge.bridge(webView, defaultHandler: { data, responseCallback in
+        self.bridge = SwiftWebViewBridge.bridge(webView, defaultHandler: { data, responseCallback in
             
             print("Swift received message from JS: \(data)")
             

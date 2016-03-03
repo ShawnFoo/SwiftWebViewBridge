@@ -24,9 +24,9 @@ public typealias SWVBHandlerDic = [String: SWVBHandler]
 public typealias SWVBCallbackDic = [String: SWVBResponseCallBack]
 public typealias SWVBMessage = [String: AnyObject]
 
-// MARK: - SwiftJavaScriptBridge
+// MARK: - SwiftWebViewBridge
 
-public class SwiftJavaScriptBridge: NSObject {
+public class SwiftWebViewBridge: NSObject {
     
     // MARK: Constants
     
@@ -87,11 +87,10 @@ public class SwiftJavaScriptBridge: NSObject {
     
     - returns: bridge
     */
-    public class func bridge(webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftJavaScriptBridge {
+    public class func bridge(webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftWebViewBridge {
         
-        let bridge = SwiftJavaScriptBridge.init()
+        let bridge = SwiftWebViewBridge.init(webView: webView)
         
-        bridge.webView = webView;
         // keep ref to original delegate
         bridge.oriDelegate = webView.delegate
         // replace it
@@ -112,9 +111,9 @@ public class SwiftJavaScriptBridge: NSObject {
     }
 }
 
-// MARK: - SwiftJavaScriptBridge + Message Manage
+// MARK: - SwiftWebViewBridge + Message Manage
 
-extension SwiftJavaScriptBridge {
+extension SwiftWebViewBridge {
     
     // MARK: Message Sent To JS
     
@@ -303,9 +302,9 @@ extension SwiftJavaScriptBridge {
     }
 }
 
-// MARK: - SwiftJavaScriptBridge + WebViewDelegate
+// MARK: - SwiftWebViewBridge + WebViewDelegate
 
-extension SwiftJavaScriptBridge: UIWebViewDelegate {
+extension SwiftWebViewBridge: UIWebViewDelegate {
     
     // It's the only entrance where JavaScript can call Swift/ObjC handler or callback.Every URL loading in any frames will trigger this method
     public func webView(webView: UIWebView, shouldStartLoadWithRequest request: NSURLRequest, navigationType: UIWebViewNavigationType) -> Bool {
@@ -391,9 +390,9 @@ extension SwiftJavaScriptBridge: UIWebViewDelegate {
     }
 }
 
-// MARK: - SwiftJavaScriptBridge + Nested Enum
+// MARK: - SwiftWebViewBridge + Nested Enum
 
-extension SwiftJavaScriptBridge {
+extension SwiftWebViewBridge {
     
     private enum LogType: CustomStringConvertible {
         
@@ -414,15 +413,15 @@ extension SwiftJavaScriptBridge {
     // Print Log
     private func swvb_printLog(logType: LogType) {
         
-        if SwiftJavaScriptBridge.logging {
+        if SwiftWebViewBridge.logging {
             print(logType.description)
         }
     }
 }
 
-// MARK: - SwiftJavaScriptBridge + JSON Serilization
+// MARK: - SwiftWebViewBridge + JSON Serilization
 
-extension SwiftJavaScriptBridge {
+extension SwiftWebViewBridge {
     
     private func javascriptStylizedJSON(message: AnyObject) -> String? {
         
@@ -445,9 +444,9 @@ extension SwiftJavaScriptBridge {
     }
 }
 
-// MARK: - SwiftJavaScriptBridge + JS Loading
+// MARK: - SwiftWebViewBridge + JS Loading
 
-extension SwiftJavaScriptBridge {
+extension SwiftWebViewBridge {
     
     /*
     Since Swift can't define macro like this #define MultilineString(x) #x in Objective-C project..
