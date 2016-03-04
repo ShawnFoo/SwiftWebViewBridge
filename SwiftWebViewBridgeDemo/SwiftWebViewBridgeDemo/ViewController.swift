@@ -48,16 +48,16 @@ class ViewController: UIViewController {
         
         //  SwiftJavaScriptBridge.logging = false
         
-        self.bridge.registerHandlerForJS(handlerName: "printReceivedParmas", handler: { [unowned self] data, responseCallback in
+        self.bridge.registerHandlerForJS(handlerName: "printReceivedParmas", handler: { [unowned self] jsonData, responseCallback in
             
             // if you used self in any bridge handler/callback closure, remember to declare weak or unowned self, preventing from retaining cycle!
             // Because VC owned bridge, brige owned this closure, and this cloure captured self!
-            self.printReceivedParmas(data)
+            self.printReceivedParmas(jsonData)
             
             responseCallback(["msg": "Swift has already finished its handler", "returnValue": [1, 2, 3]])
             })
         
-        self.bridge.sendDataToJS(["msg": "Hello JavaScript", "gift": ["100CNY", "1000CNY", "10000CNY"]])
+        self.bridge.sendDataToJS(["msg": "Hello JavaScript, My name is 小明", "gift": ["100CNY", "1000CNY", "10000CNY"]])
         
         self.loadLocalWebPage()
     }
@@ -112,7 +112,7 @@ extension ViewController {
     
     @IBAction func callJSHandler(sender: AnyObject) {
         
-        self.bridge.callJSHandler("alertReceivedParmas", params: ["msg": "JS, are you there?"], responseCallback: nil)
+        self.bridge.callJSHandler("alertReceivedParmas", params: ["msg": "JS, are you there?", "num": 5], responseCallback: nil)
     }
     
     @IBAction func callJSHandlerWithCallback(sender: AnyObject) {

@@ -71,7 +71,7 @@
             })
 
             bridge.registerHandlerForSwift('alertReceivedParmas', function(data, responseCallback) {
-                log('ObjC called alertPassinParmas with', JSON.stringify(data))
+                log('Swift called alertPassinParmas with', JSON.stringify(data))
                 alert(JSON.stringify(data))
                 var responseData = { 'JS Responds' : 'alert triggered' }
                 responseCallback(responseData)
@@ -99,7 +99,6 @@
                 log('JS got responds from Swift: ', responseData)
             })
         }
-
     </script>
     
     <div class="container">

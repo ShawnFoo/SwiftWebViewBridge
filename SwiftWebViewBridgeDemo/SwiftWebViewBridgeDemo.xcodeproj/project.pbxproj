@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		656540091C5B4FC600642A22 /* SwiftWebViewBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656540061C5B4FC600642A22 /* SwiftWebViewBridge.swift */; };
-		6565400A1C5B4FC600642A22 /* SwiftyJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 656540071C5B4FC600642A22 /* SwiftyJSON.swift */; };
 		658B54F91C4F6F57002EDAF8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658B54F81C4F6F57002EDAF8 /* AppDelegate.swift */; };
 		658B54FB1C4F6F57002EDAF8 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658B54FA1C4F6F57002EDAF8 /* ViewController.swift */; };
 		658B54FE1C4F6F57002EDAF8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 658B54FC1C4F6F57002EDAF8 /* Main.storyboard */; };
@@ -19,7 +18,6 @@
 
 /* Begin PBXFileReference section */
 		656540061C5B4FC600642A22 /* SwiftWebViewBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftWebViewBridge.swift; sourceTree = "<group>"; };
-		656540071C5B4FC600642A22 /* SwiftyJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftyJSON.swift; sourceTree = "<group>"; };
 		658B54F51C4F6F57002EDAF8 /* SwiftWebViewBridgeDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftWebViewBridgeDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		658B54F81C4F6F57002EDAF8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		658B54FA1C4F6F57002EDAF8 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -45,7 +43,6 @@
 			isa = PBXGroup;
 			children = (
 				656540061C5B4FC600642A22 /* SwiftWebViewBridge.swift */,
-				656540071C5B4FC600642A22 /* SwiftyJSON.swift */,
 			);
 			name = SwiftWebViewBridge;
 			path = ../../SwiftWebViewBridge;
@@ -157,7 +154,6 @@
 				658B54FB1C4F6F57002EDAF8 /* ViewController.swift in Sources */,
 				656540091C5B4FC600642A22 /* SwiftWebViewBridge.swift in Sources */,
 				658B54F91C4F6F57002EDAF8 /* AppDelegate.swift in Sources */,
-				6565400A1C5B4FC600642A22 /* SwiftyJSON.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

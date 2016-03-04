@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
   s.description  = <<-DESC
   					Swift version of WebViewJavascriptBridge with more simplified, friendly methods to send messages between Swift and JS in UIWebViews
                    DESC
-  s.version      = "0.1.1"
+  s.version      = "0.1.2"
   s.license      = "MIT"
   s.author       = { "Shawn Foo" => "fu4904@gmail.com" }
   s.homepage     = "https://github.com/ShawnFoo/SwiftWebViewBridge"

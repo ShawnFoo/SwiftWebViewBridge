@@ -2,23 +2,21 @@
 //  SwiftWebViewBridge.swift
 //  SwiftWebViewBridge
 //
+//  Version: 0.1.2
+//  Last Modified: 16/3/4.
 //  Created by ShawnFoo on 16/1/18.
 //  Copyright © 2016年 ShawnFoo. All rights reserved.
 //
 
 import UIKit
 
-//If you have installed SwiftJSON by Cocoapods, etc. You can uncomment the import below, also delete SwiftyJSON.swift file in SwiftWebViewBridge doc
-//import SwiftJSON
-
-
 // MARK: - Custom Type
 
 //FIXME: Swift2.2 will change the keyword typealias to associatedtype
 
-/// 1st param: resonseData to JS
+/// 1st param: responseData to JS
 public typealias SWVBResponseCallBack = AnyObject -> Void
-/// 1st param: data sent from JS; 2nd param: responseCallback for sending data back to JS
+/// 1st param: jsonData sent from JS; 2nd param: responseCallback for sending data back to JS
 public typealias SWVBHandler = (AnyObject, SWVBResponseCallBack) -> Void
 public typealias SWVBHandlerDic = [String: SWVBHandler]
 public typealias SWVBCallbackDic = [String: SWVBResponseCallBack]
@@ -173,77 +171,70 @@ extension SwiftWebViewBridge {
     // MARK: Messages Sent From JS
     private func handleMessagesFromJS(jsonMessages: String) {
         
-        guard let jsonObj:JSON = JSON.parse(jsonMessages), msgs = jsonObj.array else
-        {
-            self.swvb_printLog(.ERROR("Deserilizing Received Msg From JS: \(jsonMessages)"))
+        guard let messages = self.deserilizeMessage(jsonMessages) as? Array<SWVBMessage> else {
+            
+            self.swvb_printLog(.ERROR("Failed to deserilize received msg from JS: \(jsonMessages)"))
             return
         }
         
-        for msgJSON in msgs {
-            
-            if let msgDic = msgJSON.dictionaryObject {
+        self.swvb_printLog(.RCVD(messages))
+        
+        for swvbMsg in messages {
+            // Swift callback(after JS finished designated handler called by Swift)
+            if let responseId = swvbMsg["responseId"] as? String {
                 
-                self.swvb_printLog(.RCVD(msgDic))
-                
-                // Swift callback(after JS finished designated handler called by Swift)
-                if let responseId = msgDic["responseId"] as? String {
+                if let callback = self.jsCallbacks[responseId] {
                     
-                    if let callback = self.jsCallbacks[responseId] {
+                    let responseData = swvbMsg["responseData"] != nil ? swvbMsg["responseData"] : NSNull()
+                    
+                    callback(responseData!)
+                    self.jsCallbacks.removeValueForKey(responseId)
+                }
+                else {
+                    self.swvb_printLog(.ERROR("No matching callback closure for: \(swvbMsg)"))
+                }
+            }
+            else { // JS call Swift Handler
+                
+                let callback:SWVBResponseCallBack = {
+                    // if there is callbackId(that means JS has a callback), Swift send it back as responseId to JS so that JS can find and execute callback
+                    if let callbackId: String = swvbMsg["callbackId"] as? String {
                         
-                        let responseData = msgDic["responseData"] != nil ? msgDic["responseData"] : NSNull()
-                        
-                        callback(responseData!)
-                        self.jsCallbacks.removeValueForKey(responseId)
+                        return { [unowned self] (responseData: AnyObject?) -> Void in
+                            
+                            let data:AnyObject = responseData != nil ? responseData! : NSNull()
+                            
+                            let msg: SWVBMessage = ["responseId": callbackId, "responseData": data]//
+                            self.addToMessageQueue(msg)
+                        }
                     }
                     else {
-                        self.swvb_printLog(.ERROR("No matching callback closure for: \(msgDic)"))
+                        return { (data: AnyObject?) -> Void in
+                            // emtpy closure, make sure callback closure param is non-optional
+                        }
                     }
-                }
-                else { // JS call Swift Handler
+                }()
+                
+                let handler:SWVBHandler? = { [unowned self] in
                     
-                    let callback:SWVBResponseCallBack = {
-                        // if there is callbackId(that means JS has a callback), Swift send it back as responseId to JS so that JS can find and execute callback
-                        if let callbackId: String = msgDic["callbackId"] as? String {
-                            
-                            return { [unowned self] (responseData: AnyObject?) -> Void in
-                                
-                                let data:AnyObject = responseData != nil ? responseData! : NSNull()
-                                
-                                let msg: SWVBMessage = ["responseId": callbackId, "responseData": data]//
-                                self.addToMessageQueue(msg)
-                            }
-                        }
-                        else {
-                            return { (data: AnyObject?) -> Void in
-                                // emtpy closure, make sure callback closure param is non-optional
-                            }
-                        }
+                    if let handlerName = swvbMsg["handlerName"] as? String {
+                        
+                        return self.messageHandlers[handlerName]
+                    }
+                    
+                    return self.defaultHandler
                     }()
-                    
-                    let handler:SWVBHandler? = { [unowned self] in
-                        
-                        if let handlerName = msgDic["handlerName"] as? String {
-                            
-                            return self.messageHandlers[handlerName]
-                        }
-                        
-                        return self.defaultHandler
-                        }()
-                    
-                    guard let handlerClosure = handler else {
-                        fatalError("No handler for msg from JS: \(msgDic)..Please at least create a default handler when initializing the bridge = )")
-                    }
-                    
-                    let msgData = msgDic["data"] != nil ? msgDic["data"] : NSNull()
-                    
-                    handlerClosure(msgData!, callback)
+                
+                guard let handlerClosure = handler else {
+                    fatalError("No handler for msg from JS: \(swvbMsg)..Please at least create a default handler when initializing the bridge = )")
                 }
-            }
-            else {
-                self.swvb_printLog(.ERROR("JSON Object Deserilization Failed!"))
-            }
-        }
-    }
+                
+                let msgData = swvbMsg["data"] != nil ? swvbMsg["data"] : NSNull()
+                
+                handlerClosure(msgData!, callback)
+            }// else end
+        }//for end
+    }// func end
     
     // MARK: Swift Send Message To JS
     
@@ -425,7 +416,7 @@ extension SwiftWebViewBridge {
     
     private func javascriptStylizedJSON(message: AnyObject) -> String? {
         
-        if let jsonMsg: String = JSON(message).rawString(options: NSJSONWritingOptions()) {
+        if let jsonMsg = self.serilizeMessage(message) {
             
             let jsonStr = jsonMsg.stringByReplacingOccurrencesOfString("\\", withString: "\\\\")
                 .stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
@@ -438,6 +429,36 @@ extension SwiftWebViewBridge {
             
             //   \u2028: Line Seperator, 2029: Paragraph Seperator
             return jsonStr
+        }
+        return nil
+    }
+    
+    private func serilizeMessage(message: AnyObject) -> String? {
+        
+        let jsonData: NSData
+        do {
+            jsonData = try NSJSONSerialization.dataWithJSONObject(message, options: NSJSONWritingOptions())
+        }
+        catch let error as NSError {
+            self.swvb_printLog(.ERROR(error.description))
+            return nil
+        }
+        
+        return String(data: jsonData, encoding: NSUTF8StringEncoding)
+    }
+    
+    private func deserilizeMessage(message: String) -> AnyObject? {
+
+        if let serilizedData = message.dataUsingEncoding(NSUTF8StringEncoding) {
+            do {
+                //  allow top-level objects that are not an instance of NSArray or NSDictionary
+                let jsonObj = try NSJSONSerialization.JSONObjectWithData(serilizedData, options: .AllowFragments)
+                return jsonObj
+            }
+            catch let error as NSError {
+                self.swvb_printLog(.ERROR(error.description))
+                return nil
+            }
         }
         
         return nil
