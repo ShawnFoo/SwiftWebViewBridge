@@ -62,13 +62,10 @@ Drag `SwiftWebViewBridge.swift` file to your project.
 Generate a bridge with associated webView and default handler to deal with messages from js without specifying designated handler
 
 ```
-guard let bg = SwiftJavaScriptBridge.bridge(webView, defaultHandler: { data, responseCallback in
+let brige = SwiftJavaScriptBridge.bridge(webView, defaultHandler: { data, responseCallback in
 	print("Swift received message from JS: \(data)")
 	responseCallback("Swift already got your msg, thanks")
-}) else {        
-  	print("Error: initlizing bridge failed")
-  	return
-}
+}) 
 ```
 #####func registerHandlerForJS(handlerName name: String, handler:SWVBHandler)
 Register a handler for JavaScript calling
@@ -155,4 +152,4 @@ SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", {"name": "小明", "a
 ```
 <h2 id="5">Dig it up</h2>
 
-If you are interesting in how swift and javascript communicate with each other, the source code have very detailed comments on it. Also, you can find the unminified javascript file in UnminifiedJavascript document.
+The source code have very detailed comments, this will help you to dig it up if you are interesting in how swift and javascript communicate with each other. What's more, you can find the unminified javascript file in UnminifiedJavascript document.
