@@ -1,5 +1,9 @@
 # SwiftWebViewBridge
 
+![ObjC](https://img.shields.io/badge/Xcode-7.0%2B-brightgreen.svg)
+![ObjC](https://img.shields.io/badge/Swift-2.1-orange.svg)
+![pod](https://img.shields.io/badge/Cocoapods-v0.1.2-blue.svg)
+
 Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) with more simplified, friendly methods to send messages between Swift and JS in UIWebViews.
 
 ---
