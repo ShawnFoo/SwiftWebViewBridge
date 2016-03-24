@@ -1,8 +1,8 @@
 # SwiftWebViewBridge
 
 ![ObjC](https://img.shields.io/badge/Xcode-7.0%2B-brightgreen.svg)
-![ObjC](https://img.shields.io/badge/Swift-2.1-orange.svg)
-![pod](https://img.shields.io/badge/Cocoapods-v0.1.2-blue.svg)
+![ObjC](https://img.shields.io/badge/Swift-2.0%2B-orange.svg)
+![pod](https://img.shields.io/badge/Cocoapods-v0.1.3-blue.svg)
 
 Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) with more simplified, friendly methods to send messages between Swift and JS in UIWebViews.
 
@@ -43,7 +43,7 @@ The communication between Swift and JS depends on JSON messages.The param **json
 	```
 	platform :ios, '8.0'
 	use_frameworks!	
-	pod 'SwiftWebViewBridge', '~> 0.1.2'
+	pod 'SwiftWebViewBridge', '~> 0.1.3'
 	```
 2. Install the pod by running `pod install`
 3. import SwiftWebViewBridge

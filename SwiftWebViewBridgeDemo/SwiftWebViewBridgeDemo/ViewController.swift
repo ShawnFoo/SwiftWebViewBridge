@@ -69,12 +69,12 @@ extension ViewController: UIWebViewDelegate {
     
     func webViewDidStartLoad(webView: UIWebView) {
         
-        self.numOfLoadingRequest++
+        self.numOfLoadingRequest += 1
     }
     
     func webViewDidFinishLoad(webView: UIWebView) {
         
-        self.numOfLoadingRequest--
+        self.numOfLoadingRequest -= 1
         
         if (self.numOfLoadingRequest == 0) {
             

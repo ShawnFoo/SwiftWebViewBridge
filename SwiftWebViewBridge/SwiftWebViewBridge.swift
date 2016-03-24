@@ -12,8 +12,6 @@ import UIKit
 
 // MARK: - Custom Type
 
-//FIXME: Swift2.2 will change the keyword typealias to associatedtype
-
 /// 1st param: responseData to JS
 public typealias SWVBResponseCallBack = AnyObject -> Void
 /// 1st param: jsonData sent from JS; 2nd param: responseCallback for sending data back to JS
@@ -60,12 +58,12 @@ public class SwiftWebViewBridge: NSObject {
     }()
     private var defaultHandler: SWVBHandler? {
         get {
-            return messageHandlers["__kDefaultHandler__"]
+            return self.messageHandlers["__kDefaultHandler__"]
         }
         set {
             if let handler = newValue {
                 
-                messageHandlers["__kDefaultHandler__"] = handler
+                self.messageHandlers["__kDefaultHandler__"] = handler
             }
         }
     }
@@ -80,7 +78,7 @@ public class SwiftWebViewBridge: NSObject {
     /**
     Generate a bridge with associated webView and default handler to deal with messages from js
     
-    - parameter webView: the webView you
+    - parameter webView: webView
     - parameter handler: default handler to deal with messages from js
     
     - returns: bridge
@@ -271,7 +269,8 @@ extension SwiftWebViewBridge {
         
         if let callback = responseCallback {
             // pass this Id to JS, and then after JS finish its handler, this Id will pass back to Swift as responseId, so Swift can use it to find and execute the matching callback
-            let callbackId = "cb_\(uniqueId++)_Swift_\(NSDate().timeIntervalSince1970)"
+            let callbackId = "cb_\(uniqueId)_Swift_\(NSDate().timeIntervalSince1970)"
+            uniqueId += 1
             self.jsCallbacks[callbackId] = callback
             message["callbackId"] = callbackId
         }
@@ -314,9 +313,9 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
             }
             else if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
                 
-                if let sholudLoad = oriDelegate.webView?(webView, shouldStartLoadWithRequest: request, navigationType: navigationType) {
+                if let shouldLoad = oriDelegate.webView?(webView, shouldStartLoadWithRequest: request, navigationType: navigationType) {
                     
-                    return sholudLoad
+                    return shouldLoad
                 }
             }
             
@@ -328,7 +327,7 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
     
     public func webViewDidStartLoad(webView: UIWebView) {
         
-        self.numOfLoadingRequests++
+        self.numOfLoadingRequests += 1
         if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
             oriDelegate.webViewDidStartLoad?(webView)
         }
@@ -336,7 +335,7 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
     
     public func webViewDidFinishLoad(webView: UIWebView) {
         
-        self.numOfLoadingRequests--
+        self.numOfLoadingRequests -= 1
         // after all frames have loaded, starting to inject js and dispatch unhanlded message
         
         let loadedAll = self.numOfLoadingRequests == 0
