@@ -87,6 +87,12 @@ extension ViewController: UIWebViewDelegate {
             self.loadingActivity.stopAnimating()
         }
     }
+    
+    func webView(webView: UIWebView, didFailLoadWithError error: NSError?) {
+        if let error = error {
+            NSLog("\(error)")
+        }
+    }
 }
 
 // MARK: - ViewController + Actions
@@ -144,13 +150,19 @@ extension ViewController {
     private func loadLocalWebPage() {
         
         guard let urlPath = NSBundle.mainBundle().URLForResource("Demo", withExtension: "html") else {
-            
             print("Couldn't find the Demo.html file in bundle!")
             return
         }
         
-        let request = NSURLRequest(URL: urlPath, cachePolicy: .ReloadIgnoringLocalCacheData, timeoutInterval: 10.0)
-        self.webView.loadRequest(request)
+        var urlString: String
+        do {
+            urlString  = try String(contentsOfURL: urlPath)
+            self.webView.loadHTMLString(urlString, baseURL: urlPath)
+        }
+        catch let error as NSError {
+            NSLog("\(error)")
+            return
+        }
     }
 }
 

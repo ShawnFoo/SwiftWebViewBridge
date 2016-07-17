@@ -149,7 +149,6 @@ extension SwiftWebViewBridge {
     private func dispatchMessage(msg: SWVBMessage) {
         
         if let jsonMsg: String = self.javascriptStylizedJSON(msg), webView = self.webView {
-            
             self.swvb_printLog(.SENT(jsonMsg))
             let jsCommand = "SwiftWebViewBridge._handleMessageFromSwift('\(jsonMsg)')"
             if NSThread.isMainThread() {
@@ -170,7 +169,6 @@ extension SwiftWebViewBridge {
     private func handleMessagesFromJS(jsonMessages: String) {
         
         guard let messages = self.deserilizeMessage(jsonMessages) as? Array<SWVBMessage> else {
-            
             self.swvb_printLog(.ERROR("Failed to deserilize received msg from JS: \(jsonMessages)"))
             return
         }
@@ -180,11 +178,8 @@ extension SwiftWebViewBridge {
         for swvbMsg in messages {
             // Swift callback(after JS finished designated handler called by Swift)
             if let responseId = swvbMsg["responseId"] as? String {
-                
                 if let callback = self.jsCallbacks[responseId] {
-                    
                     let responseData = swvbMsg["responseData"] != nil ? swvbMsg["responseData"] : NSNull()
-                    
                     callback(responseData!)
                     self.jsCallbacks.removeValueForKey(responseId)
                 }
@@ -197,11 +192,8 @@ extension SwiftWebViewBridge {
                 let callback:SWVBResponseCallBack = {
                     // if there is callbackId(that means JS has a callback), Swift send it back as responseId to JS so that JS can find and execute callback
                     if let callbackId: String = swvbMsg["callbackId"] as? String {
-                        
                         return { [unowned self] (responseData: AnyObject?) -> Void in
-                            
                             let data:AnyObject = responseData != nil ? responseData! : NSNull()
-                            
                             let msg: SWVBMessage = ["responseId": callbackId, "responseData": data]//
                             self.addToMessageQueue(msg)
                         }
@@ -216,7 +208,6 @@ extension SwiftWebViewBridge {
                 let handler:SWVBHandler? = { [unowned self] in
                     
                     if let handlerName = swvbMsg["handlerName"] as? String {
-                        
                         return self.messageHandlers[handlerName]
                     }
                     
@@ -231,7 +222,7 @@ extension SwiftWebViewBridge {
                 
                 handlerClosure(msgData!, callback)
             }// else end
-        }//for end
+        }// for end
     }// func end
     
     // MARK: Swift Send Message To JS
@@ -260,7 +251,6 @@ extension SwiftWebViewBridge {
     public func callJSHandler(handlerName: String?, params: AnyObject?, responseCallback: SWVBResponseCallBack?) {
         
         var message = SWVBMessage()
-        
         message["data"] = params != nil ? params : NSNull()
         
         if let name = handlerName {
@@ -304,24 +294,20 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
             if self.isSchemeCorrect(url) && self.isHostCorrect(url) {
                 // after JS trigger this method by loading URL, Swift needs to ask JS for messages by itself
                 if let jsonMessages = webView.stringByEvaluatingJavaScriptFromString(self.kJsFetchMessagesCommand) {
-                    
                     self.handleMessagesFromJS(jsonMessages)
                 }
                 else {
                     print("Didn't fetch any message from JS!")
                 }
+                return false
             }
             else if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
-                
                 if let shouldLoad = oriDelegate.webView?(webView, shouldStartLoadWithRequest: request, navigationType: navigationType) {
-                    
                     return shouldLoad
                 }
             }
-            
             return true
         }
-        
         return false
     }
     
@@ -353,7 +339,6 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
                 self.dispatchStartupMessageQueue()
             }
         }
-
         
         if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
             oriDelegate.webViewDidFinishLoad?(webView)
