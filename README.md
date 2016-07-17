@@ -66,7 +66,7 @@ Drag `SwiftWebViewBridge.swift` file to your project.
 Generate a bridge with associated webView and default handler to deal with messages from js without specifying designated handler
 
 ```
-let brige = SwiftJavaScriptBridge.bridge(webView, defaultHandler: { data, responseCallback in
+let bridge = SwiftJavaScriptBridge.bridge(webView, defaultHandler: { data, responseCallback in
 	print("Swift received message from JS: \(data)")
 	responseCallback("Swift already got your msg, thanks")
 }) 
