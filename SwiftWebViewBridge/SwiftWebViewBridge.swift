@@ -2,8 +2,9 @@
 //  SwiftWebViewBridge.swift
 //  SwiftWebViewBridge
 //
-//  Version: 0.1.2
-//  Last Modified: 16/3/4.
+//  Github: https://github.com/ShawnFoo/SwiftWebViewBridge
+//  Version: 0.1.5
+//  Last Modified: 16/07/28.
 //  Created by ShawnFoo on 16/1/18.
 //  Copyright © 2016年 ShawnFoo. All rights reserved.
 //
@@ -170,6 +171,9 @@ extension SwiftWebViewBridge {
         
         guard let messages = self.deserilizeMessage(jsonMessages) as? Array<SWVBMessage> else {
             self.swvb_printLog(.ERROR("Failed to deserilize received msg from JS: \(jsonMessages)"))
+            return
+        }
+        if 0 == messages.count {// filter empty messages' array
             return
         }
         
