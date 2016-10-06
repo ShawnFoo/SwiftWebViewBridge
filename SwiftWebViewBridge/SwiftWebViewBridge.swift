@@ -3,8 +3,8 @@
 //  SwiftWebViewBridge
 //
 //  Github: https://github.com/ShawnFoo/SwiftWebViewBridge
-//  Version: 0.1.5
-//  Last Modified: 16/07/28.
+//  Version: 0.2.0
+//  Last Modified: 16/09/28.
 //  Created by ShawnFoo on 16/1/18.
 //  Copyright © 2016年 ShawnFoo. All rights reserved.
 //
@@ -17,9 +17,12 @@ import UIKit
 public typealias SWVBResponseCallBack = (NSDictionary) -> Void
 /// 1st param: jsonData sent from JS; 2nd param: responseCallback for sending data back to JS
 public typealias SWVBHandler = (AnyObject, SWVBResponseCallBack) -> Void
+/// Dictionary to hold handlers for swift calling
 public typealias SWVBHandlerDic = [String: SWVBHandler]
+/// Dictionary to store the JS callback in the Swift side(Only pass the uniqueId to JS for the callback)
 public typealias SWVBCallbackDic = [String: SWVBResponseCallBack]
 public typealias SWVBMessage = [String: AnyObject]
+public typealias SWVBData = [String: Any]
 
 // MARK: - SwiftWebViewBridge
 
@@ -45,7 +48,7 @@ open class SwiftWebViewBridge: NSObject {
     
     // MARK: Proporties
     
-    open static var logging = true
+    public static var logging = true
     
     fileprivate weak var webView: UIWebView?
     fileprivate weak var oriDelegate: AnyObject?
@@ -84,7 +87,7 @@ open class SwiftWebViewBridge: NSObject {
      
      - returns: bridge
      */
-    open class func bridge(_ webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftWebViewBridge {
+    public class func bridge(_ webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftWebViewBridge {
         
         let bridge = SwiftWebViewBridge.init(webView: webView)
         
@@ -150,19 +153,20 @@ extension SwiftWebViewBridge {
     fileprivate func dispatchMessage(_ msg: SWVBMessage) {
         
         if let jsonMsg: String = self.javascriptStylizedJSON(msg as AnyObject), let webView = self.webView {
-            self.swvb_printLog(.sent(jsonMsg as AnyObject))
+            self.swvb_printLog(.SENT(jsonMsg as AnyObject))
             let jsCommand = "SwiftWebViewBridge._handleMessageFromSwift('\(jsonMsg)')"
             if Thread.isMainThread {
                 webView.stringByEvaluatingJavaScript(from: jsCommand)
             }
             else {
+                let _ =
                 DispatchQueue.main.sync {
                     webView.stringByEvaluatingJavaScript(from: jsCommand)
                 }
             }
         }
         else {
-            self.swvb_printLog(.error("Swift Object Serialization Failed: \(msg)"))
+            self.swvb_printLog(.ERROR("Swift Object Serialization Failed: \(msg)"))
         }
     }
     
@@ -170,14 +174,14 @@ extension SwiftWebViewBridge {
     fileprivate func handleMessagesFromJS(_ jsonMessages: String) {
         
         guard let messages = self.deserilizeMessage(jsonMessages) as? Array<SWVBMessage> else {
-            self.swvb_printLog(.error("Failed to deserilize received msg from JS: \(jsonMessages)"))
+            self.swvb_printLog(.ERROR("Failed to deserilize received msg from JS: \(jsonMessages)"))
             return
         }
         if 0 == messages.count {// filter empty messages' array
             return
         }
         
-        self.swvb_printLog(.rcvd(messages as AnyObject))
+        self.swvb_printLog(.RCVD(messages as AnyObject))
         
         for swvbMsg in messages {
             // Swift callback(after JS finished designated handler called by Swift)
@@ -189,7 +193,7 @@ extension SwiftWebViewBridge {
                     self.jsCallbacks.removeValue(forKey: responseId)
                 }
                 else {
-                    self.swvb_printLog(.error("No matching callback closure for: \(swvbMsg)"))
+                    self.swvb_printLog(.ERROR("No matching callback closure for: \(swvbMsg)"))
                 }
             }
             else { // JS call Swift Handler
@@ -235,14 +239,14 @@ extension SwiftWebViewBridge {
     /**
      Sent data to JS simply
      */
-    public func sendDataToJS(_ data: NSDictionary) {
+    public func sendDataToJS(_ data: SWVBData) {
         self.callJSHandler(nil, params: data, responseCallback: nil)
     }
     
     /**
      Send data to JS with callback closure
      */
-    public func sendDataToJS(_ data: NSDictionary, responseCallback: SWVBResponseCallBack?) {
+    public func sendDataToJS(_ data: SWVBData, responseCallback: SWVBResponseCallBack?) {
         self.callJSHandler(nil, params: data, responseCallback: responseCallback)
     }
     
@@ -253,10 +257,12 @@ extension SwiftWebViewBridge {
      - parameter params:           params(optional)
      - parameter responseCallback: callback(optional) will execute, after JS finished the matching handler
      */
-    public func callJSHandler(_ handlerName: String?, params: NSDictionary?, responseCallback: SWVBResponseCallBack?) {
+    public func callJSHandler(_ handlerName: String?, params: SWVBData?, responseCallback: SWVBResponseCallBack?) {
         
         var message = SWVBMessage()
-        message["data"] = params != nil ? params : NSNull()
+        if let params = params {
+            message["data"] = params as AnyObject?
+        }
         
         if let name = handlerName {
             message["handlerName"] = name as AnyObject?
@@ -376,15 +382,15 @@ extension SwiftWebViewBridge {
     
     fileprivate enum LogType: CustomStringConvertible {
         
-        case error(String), sent(AnyObject), rcvd(AnyObject)
+        case ERROR(String), SENT(AnyObject), RCVD(AnyObject)
         
         var description: String {
             switch self {
-            case let .error(msg):
+            case let .ERROR(msg):
                 return "LOGGING_ERROR: \(msg)"
-            case let .sent(msg):
+            case let .SENT(msg):
                 return "LOGGING_SENT: \(msg)"
-            case let .rcvd(msg):
+            case let .RCVD(msg):
                 return "LOGGING_RCVD: \(msg)"
             }
         }
@@ -429,7 +435,7 @@ extension SwiftWebViewBridge {
             jsonData = try JSONSerialization.data(withJSONObject: message, options: JSONSerialization.WritingOptions())
         }
         catch let error as NSError {
-            self.swvb_printLog(.error(error.description))
+            self.swvb_printLog(.ERROR(error.description))
             return nil
         }
         
@@ -445,7 +451,7 @@ extension SwiftWebViewBridge {
                 return jsonObj as AnyObject?
             }
             catch let error as NSError {
-                self.swvb_printLog(.error(error.description))
+                self.swvb_printLog(.ERROR(error.description))
                 return nil
             }
         }

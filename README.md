@@ -2,23 +2,45 @@
 
 ![ObjC](https://img.shields.io/badge/Xcode-7.0%2B-brightgreen.svg)
 ![ObjC](https://img.shields.io/badge/Swift-2.0%2B-orange.svg)
-![pod](https://img.shields.io/badge/Cocoapods-0.1.5-blue.svg)
+![pod](https://img.shields.io/badge/Cocoapods-0.2.0-blue.svg)
 
 Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) with more simplified, friendly methods to send messages between Swift and JS in UIWebViews.
 
 ---
-1. [Preview](#1)
-2. [Requirements](#2)
-3. [Installation](#3)
+
+1. [Installation](#1)
+2. [Preview](#2)
+3. [Requirements](#3) 
 4. [How to use it](#4)
 5. [Dig it up](#5)
 
-<h2 id="1">Preview</h2>
+<h2 id="1">Installation</h2>
+
+####Cocoapods(iOS8+)
+
+**If your Swift version is below 3.0, Please use tag `0.1.5` release!**
+
+1. Add these lines below to your Podfile 
+
+	```
+	platform :ios, '8.0'
+	use_frameworks!	
+	pod 'SwiftWebViewBridge', '~> 0.2.0'
+	```
+2. Install the pod by running `pod install`
+3. import SwiftWebViewBridge
+
+####Manually(iOS7+)
+
+Drag `SwiftWebViewBridge.swift` file to your project.
+
+
+<h2 id="2">Preview</h2>
 
 ![preview](http://ww1.sinaimg.cn/mw690/9161297cgw1f1kurzma50j209e0go75w.jpg)
 ![preview2](http://ww1.sinaimg.cn/mw690/9161297cgw1f1kurzyeykj20ka0btwgz.jpg)
 
-<h2 id="2">Requirements</h2>
+<h2 id="3">Requirements</h2>
 
 1. Xcode7.0+
 2. iOS7.0+
@@ -29,28 +51,8 @@ Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebVi
 
 The communication between Swift and JS depends on JSON messages.The param **jsonData** you got in closure is deserlized by method below.You could simply pass it in JSON(jsonObject) designated initializer of SwiftJSON
 
-
 	NSJSONSerialization.JSONObjectWithData(serilizedData, .AllowFragments)
 	func JSONObjectWithData(_ data: NSData, options opt: NSJSONReadingOptions) throws -> AnyObject
-
-
-<h2 id="3">Installation</h2>
-
-####Cocoapods(iOS8+)
-
-1. Add these lines below to your Podfile 
-
-	```
-	platform :ios, '8.0'
-	use_frameworks!	
-	pod 'SwiftWebViewBridge', '~> 0.1.5'
-	```
-2. Install the pod by running `pod install`
-3. import SwiftWebViewBridge
-
-####Manually(iOS7+)
-
-Drag `SwiftWebViewBridge.swift` file to your project.
 
 <h2 id="4">How to use it:</h2>
 
@@ -62,7 +64,7 @@ Drag `SwiftWebViewBridge.swift` file to your project.
 
 ###For Swift
 
-#####func bridge(webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftJavaScriptBridge?
+#####func bridge(_ webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftWebViewBridge
 Generate a bridge with associated webView and default handler to deal with messages from js without specifying designated handler
 
 ```
@@ -81,13 +83,13 @@ bridge.registerHandlerForJS(handlerName: "getSesionId", handler: { [unowned self
 	responseCallback(["msg": "Swift has already finished its handler", "returnValue": [1, 2, 3]])
 })
 ```
-#####func sendDataToJS(data: AnyObject)
+#####func sendDataToJS(_ data: SWVBData)
 Simply Sent data to JS 
 
 ```
 bridge.sendDataToJS(["msg": "Hello JavaScript", "gift": ["100CNY", "1000CNY", "10000CNY"]])
 ```
-#####func sendDataToJS(data: AnyObject, responseCallback: SWVBResponseCallBack?)
+#####func sendDataToJS(_ data: SWVBData, responseCallback: SWVBResponseCallBack?)
 Send data to JS with callback closure
 
 ```
@@ -95,19 +97,20 @@ bridge.sendDataToJS("Did you received my gift, JS?", responseCallback: { data in
 	print("Receiving JS return gift: \(data)")
 })
 ```
-#####func callJSHandler(handlerName: String?, params: AnyObject?, responseCallback: SWVBResponseCallBack?)
+#####func callJSHandler(_ handlerName: String?, params: SWVBData?, responseCallback: SWVBResponseCallBack?)
 Call JavaScript registered handler
 
 ```
 bridge.callJSHandler("alertReceivedParmas", params: ["msg": "JS, are you there?"], responseCallback: nil)
 ```
-#####two custom closures mentioned above 
+#####typealias mentioned above 
 
 ```
 /// 1st param: responseData to JS
-public typealias SWVBResponseCallBack = AnyObject -> Void
+public typealias SWVBResponseCallBack = (NSDictionary) -> Void
 /// 1st param: jsonData sent from JS; 2nd param: responseCallback for sending data back to JS
 public typealias SWVBHandler = (AnyObject, SWVBResponseCallBack) -> Void
+public typealias SWVBData = [String: Any]
 ```
 
 #####logging for debug
@@ -157,3 +160,4 @@ SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", {"name": "小明", "a
 <h2 id="5">Dig it up</h2>
 
 The source code have very detailed comments, this will help you to dig it up if you are interesting in how swift and javascript communicate with each other. What's more, you can find the unminified javascript file in UnminifiedJavascript document.
+
