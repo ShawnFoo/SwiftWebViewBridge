@@ -43,7 +43,11 @@ class ViewController: UIViewController {
             print("Swift received message from JS: \(data)")
             
             // Actually, this responseCallback could be an empty closure when javascript has no callback, saving you from unwarping an optional parameter = )
-            responseCallback(["msg": "Swift already got your msg, thanks"])
+            // responseCallback is modified by @escaping
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.0) {
+                // Simulating the situation that needs to do some   asynchronous tasks
+                responseCallback(["msg": "Swift already got your msg, thanks"])
+            }
         })
         
         //  SwiftJavaScriptBridge.logging = false

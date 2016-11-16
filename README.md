@@ -2,7 +2,7 @@
 
 ![ObjC](https://img.shields.io/badge/Xcode-7.0%2B-brightgreen.svg)
 ![ObjC](https://img.shields.io/badge/Swift-2.0%2B-orange.svg)
-![pod](https://img.shields.io/badge/Cocoapods-0.2.0-blue.svg)
+![pod](https://img.shields.io/badge/Cocoapods-0.2.1-blue.svg)
 
 Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) with more simplified, friendly methods to send messages between Swift and JS in UIWebViews.
 
@@ -25,7 +25,7 @@ Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebVi
 	```
 	platform :ios, '8.0'
 	use_frameworks!	
-	pod 'SwiftWebViewBridge', '~> 0.2.0'
+	pod 'SwiftWebViewBridge', '~> 0.2.1'
 	```
 2. Install the pod by running `pod install`
 3. import SwiftWebViewBridge
@@ -109,7 +109,7 @@ bridge.callJSHandler("alertReceivedParmas", params: ["msg": "JS, are you there?"
 /// 1st param: responseData to JS
 public typealias SWVBResponseCallBack = (NSDictionary) -> Void
 /// 1st param: jsonData sent from JS; 2nd param: responseCallback for sending data back to JS
-public typealias SWVBHandler = (AnyObject, SWVBResponseCallBack) -> Void
+public typealias SWVBHandler = (AnyObject, @escaping SWVBResponseCallBack) -> Void
 public typealias SWVBData = [String: Any]
 ```
 
