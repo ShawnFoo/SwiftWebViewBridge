@@ -185,15 +185,17 @@ extension SwiftWebViewBridge {
         
         for swvbMsg in messages {
             // Swift callback(after JS finished designated handler called by Swift)
-            if let responseId = swvbMsg["responseId"] as? String {
-                if let callback = self.jsCallbacks[responseId] {
-                    if let responseData = swvbMsg["responseData"] != nil ? swvbMsg["responseData"] : NSNull() {
-                        callback(responseData as! NSDictionary)
+            if let swvbMsgData = swvbMsg["data"] as? [String: AnyObject] {
+                if let responseId = swvbMsgData["responseId"] as? String {
+                    if let callback = self.jsCallbacks[responseId] {
+                        if let responseData = swvbMsgData["responseData"] != nil ? swvbMsgData["responseData"] : NSNull() {
+                            callback(responseData as! NSDictionary)
+                        }
+                        self.jsCallbacks.removeValue(forKey: responseId)
                     }
-                    self.jsCallbacks.removeValue(forKey: responseId)
-                }
-                else {
-                    self.swvb_printLog(.ERROR("No matching callback closure for: \(swvbMsg)"))
+                    else {
+                        self.swvb_printLog(.ERROR("No matching callback closure for: \(swvbMsg)"))
+                    }
                 }
             }
             else { // JS call Swift Handler
