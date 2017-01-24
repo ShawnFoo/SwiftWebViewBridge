@@ -7,17 +7,17 @@
             text-align: center;
         }
 		h1 { 
-            color:gray; 
-            font-size:24px;
+            color: gray; 
+            font-size: 24px;
         }
 		button { 
-            margin:0 3px 10px; 
-            font-size:15px; 
+            margin: 0 3px 10px; 
+            font-size: 15px; 
         }
 		.logLine { 
-            border-bottom:1px solid #ccc; 
-            padding:4px 4px; 
-            font-size:12px; 
+            border-bottom: 1px solid #ccc; 
+            padding: 4px 4px; 
+            font-size: 12px; 
         }
 	</style>
 </head>
@@ -25,19 +25,17 @@
     <script>
         window.log = (function(){
             var uniqueId = 1;
-            function log(message, data) {
-
+            function _log(message, data) {
                 var logElem = document.getElementById("logContainer");
                 var newElem = document.createElement("div");
                 newElem.className = "logLine";
-
                 if (data) {
                     console.log(message + ":<br/>" + data);
-                    newElem.innerHTML = uniqueId++ + '. ' + message + ':<br/>' + JSON.stringify(data)
+                    newElem.innerHTML = uniqueId++ + '. ' + message + ':<br/>' + JSON.stringify(data);
                 }
                 else {
                     console.log(message); 
-                    newElem.innerHTML = uniqueId++ + '. ' + message 
+                    newElem.innerHTML = uniqueId++ + '. ' + message;
                 }
                 if (logElem.children.length) {
                     logElem.insertBefore(newElem, logElem.children[0]);
@@ -46,58 +44,73 @@
                     logElem.appendChild(newElem);
                 }
             }
-            return {_log: log}
-        })()._log;
+            return {log: _log};
+        })().log;
 
         window.onerror = function(err) {
-            log("window.onerror: " + err)
-        }
+            log("window.onerror: " + err);
+        };
 
         function connectToSwiftWebViewBridge(callback) {
             if (window.SwiftWebViewBridge) {
-                callback(SwiftWebViewBridge)
+                callback(SwiftWebViewBridge);
             } else {
                 document.addEventListener('SwiftWebViewBridgeReady', function() {
-                    callback(SwiftWebViewBridge)
-                }, false)
+                    callback(SwiftWebViewBridge);
+                }, false);
             }
         }
 
         connectToSwiftWebViewBridge(function(bridge) {
             bridge.init(function(message, responseCallback) {
-                log('JS got a message', message)
-                var data = { 'JS Responds' : 'Message received = )' }
-                responseCallback(data)
-            })
+                log('JS got a message', message);
+                var data = {
+                    'JS Responds': 'Message received = )'
+                };
+                responseCallback(data);
+            });
 
             bridge.registerHandlerForSwift('alertReceivedParmas', function(data, responseCallback) {
-                log('Swift called alertPassinParmas with', JSON.stringify(data))
-                alert(JSON.stringify(data))
-                var responseData = { 'JS Responds' : 'alert triggered' }
-                responseCallback(responseData)
-            })
+                log('Swift called alertPassinParmas with', JSON.stringify(data));
+                alert(JSON.stringify(data));
+                var responseData = {
+                    'JS Responds': 'alert triggered' 
+                };
+                responseCallback(responseData);
+            });
 
             window.testSendDataToSwift = function() {
-                bridge.sendDataToSwift( 'Say Hello Swiftly to Swift' )
-            }
+                bridge.sendDataToSwift('Say Hello Swiftly to Swift');
+            };
         });
 
         function testSendDataToSwiftWithCallback() {
-            SwiftWebViewBridge.sendDataToSwift( 'Hi, anybody there?' , function(responseData){
-                alert("got your response: " + JSON.stringify(responseData))
-            })
+            SwiftWebViewBridge.sendDataToSwift('Hi, anybody there?' , function(responseData) {
+                alert("got your response: " + JSON.stringify(responseData));
+            });
         }
 
         function testCallSwiftHandler() {
-            data = {"name": "小明", "age": "6", "school": "GDUT"}
-            log('JS is calling printReceivedParmas handler of Swift', data)
-            SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", data, null)
+            data = {
+                "name": "小明", 
+                "age": "6", 
+                "school": "GDUT"
+            };
+            log('JS is calling printReceivedParmas handler of Swift', data);
+            SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", data, null);
         }
 
         function testCallSwiftHandlerWithCallback() {
-            SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", {"name": "小明", "age": "6", "school": "GDUT"}, function(responseData){
-                log('JS got responds from Swift: ', responseData)
-            })
+            SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", 
+                                                {
+                                                    "name": "小明",
+                                                    "age": "6", 
+                                                    "school": "GDUT"
+                                                }, 
+                                                function(responseData)
+                                                {
+                                                    log('JS got responds from Swift: ', responseData);
+                                                });
         }
     </script>
     

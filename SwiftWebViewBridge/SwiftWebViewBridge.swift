@@ -3,9 +3,9 @@
 //  SwiftWebViewBridge
 //
 //  Github: https://github.com/ShawnFoo/SwiftWebViewBridge
-//  Version: 0.2.1
-//  Last Modified: 16/09/28.
-//  Created by ShawnFoo on 16/1/18.
+//  Version: 0.3.0
+//  Last Modified: 1/24/17.
+//  Created by ShawnFoo on 1/18/16.
 //  Copyright © 2016年 ShawnFoo. All rights reserved.
 //
 
@@ -106,7 +106,6 @@ open class SwiftWebViewBridge: NSObject {
     
     fileprivate convenience init(webView: UIWebView) {
         self.init()
-        
         self.webView = webView
     }
 }
@@ -123,7 +122,6 @@ extension SwiftWebViewBridge {
      - parameter msg: message that will be sent to JS
      */
     fileprivate func addToMessageQueue(_ msg: SWVBMessage) {
-        
         if nil != self.startupMessageQueue {
             self.startupMessageQueue!.append(msg)
         }
@@ -136,7 +134,6 @@ extension SwiftWebViewBridge {
      Sending every message(send data or call handler) that happened before UIWebView did finish all loadings to JS one by one
      */
     fileprivate func dispatchStartupMessageQueue() {
-        
         if let queue = self.startupMessageQueue {
             for message in queue {
                 self.dispatchMessage(message)
@@ -152,7 +149,9 @@ extension SwiftWebViewBridge {
      */
     fileprivate func dispatchMessage(_ msg: SWVBMessage) {
         
-        if let jsonMsg: String = self.javascriptStylizedJSON(msg as AnyObject), let webView = self.webView {
+        if let jsonMsg: String = self.javascriptStylizedJSON(msg as AnyObject),
+            let webView = self.webView
+        {
             self.swvb_printLog(.SENT(jsonMsg as AnyObject))
             let jsCommand = "SwiftWebViewBridge._handleMessageFromSwift('\(jsonMsg)')"
             if Thread.isMainThread {
@@ -185,27 +184,24 @@ extension SwiftWebViewBridge {
         
         for swvbMsg in messages {
             // Swift callback(after JS finished designated handler called by Swift)
-            let swvbMsgData = swvbMsg["data"] as? [String: AnyObject]
-            let responseId = swvbMsgData?["responseId"] as? String
-            if swvbMsgData != nil && responseId != nil {
-                if let callback = self.jsCallbacks[responseId!] {
-                    if let responseData = swvbMsgData!["responseData"] != nil ? swvbMsgData!["responseData"] : NSNull() {
+            if let responseId = swvbMsg["responseId"] as? String {
+                if let callback = self.jsCallbacks[responseId] {
+                    if let responseData = swvbMsg["responseData"] != nil ? swvbMsg["responseData"] : NSNull() {
                         callback(responseData as! NSDictionary)
                     }
-                    self.jsCallbacks.removeValue(forKey: responseId!)
+                    self.jsCallbacks.removeValue(forKey: responseId)
                 }
                 else {
                     self.swvb_printLog(.ERROR("No matching callback closure for: \(swvbMsg)"))
                 }
             }
             else { // JS call Swift Handler
-                
                 let callback:SWVBResponseCallBack = {
                     // if there is callbackId(that means JS has a callback), Swift send it back as responseId to JS so that JS can find and execute callback
                     if let callbackId: String = swvbMsg["callbackId"] as? String {
                         return { [unowned self] (responseData: AnyObject?) -> Void in
                             let data:AnyObject = responseData != nil ? responseData! : NSNull()
-                            let msg: SWVBMessage = ["responseId": callbackId as AnyObject, "responseData": data]//
+                            let msg: SWVBMessage = ["responseId": callbackId as AnyObject, "responseData": data]
                             self.addToMessageQueue(msg)
                         }
                     }
@@ -217,11 +213,9 @@ extension SwiftWebViewBridge {
                 }()
                 
                 let handler:SWVBHandler? = { [unowned self] in
-                    
                     if let handlerName = swvbMsg["handlerName"] as? String {
                         return self.messageHandlers[handlerName]
                     }
-                    
                     return self.defaultHandler
                     }()
                 
@@ -230,7 +224,6 @@ extension SwiftWebViewBridge {
                 }
                 
                 let msgData = swvbMsg["data"] != nil ? swvbMsg["data"] : NSNull()
-                
                 handlerClosure(msgData!, callback)
             }// else end
         }// for end
@@ -290,7 +283,6 @@ extension SwiftWebViewBridge {
      - parameter handler: closure
      */
     public func registerHandlerForJS(handlerName name: String, handler:@escaping SWVBHandler) {
-        
         self.messageHandlers[name] = handler
     }
 }
@@ -303,7 +295,6 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
     public func webView(_ webView: UIWebView, shouldStartLoadWith request: URLRequest, navigationType: UIWebViewNavigationType) -> Bool {
         
         if let url:URL = request.url {
-            
             if self.isSchemeCorrect(url) && self.isHostCorrect(url) {
                 // after JS trigger this method by loading URL, Swift needs to ask JS for messages by itself
                 if let jsonMessages = webView.stringByEvaluatingJavaScript(from: self.kJsFetchMessagesCommand) {
@@ -325,7 +316,6 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
     }
     
     public func webViewDidStartLoad(_ webView: UIWebView) {
-        
         self.numOfLoadingRequests += 1
         if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
             oriDelegate.webViewDidStartLoad?(webView)
@@ -341,8 +331,7 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
         let noDefinedBridge = webView.stringByEvaluatingJavaScript(from: kJsCheckObjectDefinedCommand) == "false"
         
         // make sure the js has not been injected or no duplicated SwiftWebViewBridge js object
-        if  loadedAll && noDefinedBridge {
-            
+        if loadedAll && noDefinedBridge {
             // inject js
             webView.stringByEvaluatingJavaScript(from: self.loadMinifiedJS())
             if webView.stringByEvaluatingJavaScript(from: kJsCheckObjectDefinedCommand) != "true" {
@@ -359,7 +348,6 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
     }
     
     public func webView(_ webView: UIWebView, didFailLoadWithError error: Error) {
-        
         if let oriDelegate = self.oriDelegate as? UIWebViewDelegate {
             oriDelegate.webView?(webView, didFailLoadWithError: error)
         }
@@ -368,12 +356,10 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
     // MARK: URL Checking
     
     fileprivate func isSchemeCorrect(_ url: URL) -> Bool {
-        
         return url.scheme == self.kCustomProtocolScheme;
     }
     
     fileprivate func isHostCorrect(_ url: URL) -> Bool {
-        
         return url.host == self.kCustomProtocolHost;
     }
 }
@@ -383,7 +369,6 @@ extension SwiftWebViewBridge: UIWebViewDelegate {
 extension SwiftWebViewBridge {
     
     fileprivate enum LogType: CustomStringConvertible {
-        
         case ERROR(String), SENT(AnyObject), RCVD(AnyObject)
         
         var description: String {
@@ -400,7 +385,6 @@ extension SwiftWebViewBridge {
     
     // Print Log
     fileprivate func swvb_printLog(_ logType: LogType) {
-        
         if SwiftWebViewBridge.logging {
             print(logType.description)
         }
@@ -412,9 +396,7 @@ extension SwiftWebViewBridge {
 extension SwiftWebViewBridge {
     
     fileprivate func javascriptStylizedJSON(_ message: AnyObject) -> String? {
-        
         if let jsonMsg = self.serilizeMessage(message) {
-            
             let jsonStr = jsonMsg.replacingOccurrences(of: "\\", with: "\\\\")
                 .replacingOccurrences(of: "\"", with: "\\\"")
                 .replacingOccurrences(of: "\'", with: "\\\'")
@@ -440,7 +422,6 @@ extension SwiftWebViewBridge {
             self.swvb_printLog(.ERROR(error.description))
             return nil
         }
-        
         return String(data: jsonData, encoding: String.Encoding.utf8)
     }
     
@@ -457,7 +438,6 @@ extension SwiftWebViewBridge {
                 return nil
             }
         }
-        
         return nil
     }
 }
@@ -466,14 +446,7 @@ extension SwiftWebViewBridge {
 
 extension SwiftWebViewBridge {
     
-    /*
-     Since Swift can't define macro like this #define MultilineString(x) #x in Objective-C project..
-     This is only way I can imagine to load the text of javascript by minifying it..
-     If you have better ways to load js in Swift, please let me know, thanks a lot😄
-     */
-    
     fileprivate func loadMinifiedJS() -> String {
-        
-        return ";(function(){if(window.SwiftWebViewBridge){return}var hiddenMessagingIframe;var unsentMessageQueue=[];var startupRCVDMessageQueue=[];var messageHandlers={};var CUSTOM_PROTOCOL_SCHEME='swvbscheme';var CUSTOM_PROTOCOL_HOST='__SWVB_Host_MESSAGE__';var responseCallbacks={};var uniqueId=1;function createHiddenIframe(doc){hiddenMessagingIframe=doc.createElement('iframe');hiddenMessagingIframe.style.display='none';hiddenMessagingIframe.src=CUSTOM_PROTOCOL_SCHEME+'://'+CUSTOM_PROTOCOL_HOST;doc.documentElement.appendChild(hiddenMessagingIframe)}function init(defaultHandler){if(SwiftWebViewBridge._defaultHandler){throw new Error('SwiftWebViewBridge.init called twice');}SwiftWebViewBridge._defaultHandler=defaultHandler;var receivedMessages=startupRCVDMessageQueue;startupRCVDMessageQueue=null;for(var i=0;i<receivedMessages.length;i++){dispatchMessageFromSwift(receivedMessages[i])}}function _fetchJSMessage(){var messageQueueString=JSON.stringify(unsentMessageQueue);unsentMessageQueue=[];return messageQueueString}function _handleMessageFromSwift(jsonMsg){if(startupRCVDMessageQueue){startupRCVDMessageQueue.push(jsonMsg)}else{dispatchMessageFromSwift(jsonMsg)}}function sendDataToSwift(data,responseCallback){callSwiftHandler(null,data,responseCallback)}function callSwiftHandler(handlerName,data,responseCallback){var message=handlerName?{handlerName:handlerName,data:data}:{data:data};if(responseCallback){var callbackId='cb_'+(uniqueId++)+'_JS_'+new Date().getTime();responseCallbacks[callbackId]=responseCallback;message['callbackId']=callbackId}unsentMessageQueue.push(message);hiddenMessagingIframe.src=CUSTOM_PROTOCOL_SCHEME+'://'+CUSTOM_PROTOCOL_HOST}function registerHandlerForSwift(handlerName,handler){messageHandlers[handlerName]=handler}function dispatchMessageFromSwift(jsonMsg){setTimeout(function timeoutDispatchMessageFromSwift(){var message=JSON.parse(jsonMsg);var responseCallback;if(message.responseId){responseCallback=responseCallbacks[message.responseId];if(responseCallback){responseCallback(message.responseData);delete responseCallbacks[message.responseId]}}else{if(message.callbackId){var callbackResponseId=message.callbackId;responseCallback=function(responseData){sendDataToSwift({responseId:callbackResponseId,responseData:responseData})}}var handler=SwiftWebViewBridge._defaultHandler;if(message.handlerName){handler=messageHandlers[message.handlerName]}if(handler){try{handler(message.data,responseCallback)}catch(exception){if(typeof console!='undefined'){console.log('SwiftWebViewBridge: WARNING: javascript handler threw.',message,exception)}}}else{onerror('No defaultHandler!')}}})}window.SwiftWebViewBridge={init:init,sendDataToSwift:sendDataToSwift,registerHandlerForSwift:registerHandlerForSwift,callSwiftHandler:callSwiftHandler,_fetchJSMessage:_fetchJSMessage,_handleMessageFromSwift:_handleMessageFromSwift};var doc=document;createHiddenIframe(doc);var readyEvent=doc.createEvent('Events');readyEvent.initEvent('SwiftWebViewBridgeReady');doc.dispatchEvent(readyEvent)})();"
+        return "(function(){function p(b){if(SwiftWebViewBridge._defaultHandler)throw Error(\"SwiftWebViewBridge.init called twice\");SwiftWebViewBridge._defaultHandler=b;b=d;d=null;for(var a=0;a<b.length;a++)k(b[a])}function q(){var b=JSON.stringify(f);f=[];return b}function r(b){d?d.push(b):k(b)}function t(b,a){l(null,b,a)}function l(b,a,c){b=b?{handlerName:b,data:a}:{data:a};c&&(a=\"cb_\"+u++ +\"_JS_\"+(new Date).getTime(),g[a]=c,b.callbackId=a);f.push(b);e.src=\"swvbscheme://__SWVB_Host_MESSAGE__\"}function v(b,a){m[b]=\na}function k(b){window.setTimeout(function(){var a=JSON.parse(b),c;if(a.responseId){if(c=g[a.responseId])c(a.responseData),delete g[a.responseId]}else{if(a.callbackId){var d=a.callbackId;c=function(a){f.push({responseId:d,responseData:a});e.src=\"swvbscheme://__SWVB_Host_MESSAGE__\"}}var h=SwiftWebViewBridge._defaultHandler;a.handlerName&&(h=m[a.handlerName]);if(h)try{h(a.data,c)}catch(w){\"undefined\"!=typeof console&&console.log(\"SwiftWebViewBridge: WARNING: javascript handler threw.\",a,w)}else onerror(\"No defaultHandler!\")}})}\nif(!window.SwiftWebViewBridge){var e,f=[],d=[],m={},g={},u=1;window.SwiftWebViewBridge={init:p,sendDataToSwift:t,registerHandlerForSwift:v,callSwiftHandler:l,_fetchJSMessage:q,_handleMessageFromSwift:r};e=document.createElement(\"iframe\");e.style.display=\"none\";e.src=\"swvbscheme://__SWVB_Host_MESSAGE__\";document.documentElement.appendChild(e);var n=document.createEvent(\"Events\");n.initEvent(\"SwiftWebViewBridgeReady\");document.dispatchEvent(n)}})();"
     }
 }
