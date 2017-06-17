@@ -16,7 +16,7 @@ Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebVi
 
 <h2 id="1">Installation</h2>
 
-####Cocoapods(iOS8+)
+#### Cocoapods(iOS8+)
 
 **If your Swift version is below 3.0, Please use tag `0.1.5` release!**
 
@@ -30,7 +30,7 @@ Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebVi
 2. Install the pod by running `pod install`
 3. import SwiftWebViewBridge
 
-####Manually(iOS7+)
+#### Manually(iOS7+)
 
 Drag `SwiftWebViewBridge.swift` file to your project.
 
@@ -45,7 +45,7 @@ Drag `SwiftWebViewBridge.swift` file to your project.
 1. Xcode7.0+
 2. iOS7.0+
 
-####Optional
+#### Optional
 
 [SwiftyJSON](https://github.com/SwiftyJSON/SwiftyJSON): SwiftyJSON makes it easy to deal with JSON data in Swift.
 
@@ -56,15 +56,15 @@ The communication between Swift and JS depends on JSON messages.The param **json
 
 <h2 id="4">How to use it:</h2>
 
-###General
+### General
 
 1. initialize a bridge with defaultHandler
 2. register handlers to handle different events
 3. send data / call handler on both sides
 
-###For Swift
+### For Swift
 
-#####func bridge(_ webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftWebViewBridge
+##### func bridge(_ webView: UIWebView, defaultHandler handler: SWVBHandler?) -> SwiftWebViewBridge
 Generate a bridge with associated webView and default handler to deal with messages from js without specifying designated handler
 
 ```
@@ -73,7 +73,7 @@ let bridge = SwiftJavaScriptBridge.bridge(webView, defaultHandler: { data, respo
 	responseCallback("Swift already got your msg, thanks")
 }) 
 ```
-#####func registerHandlerForJS(handlerName name: String, handler:SWVBHandler)
+##### func registerHandlerForJS(handlerName name: String, handler:SWVBHandler)
 Register a handler for JavaScript calling
 
 ```
@@ -83,13 +83,13 @@ bridge.registerHandlerForJS(handlerName: "getSesionId", handler: { [unowned self
 	responseCallback(["msg": "Swift has already finished its handler", "returnValue": [1, 2, 3]])
 })
 ```
-#####func sendDataToJS(_ data: SWVBData)
+##### func sendDataToJS(_ data: SWVBData)
 Simply Sent data to JS 
 
 ```
 bridge.sendDataToJS(["msg": "Hello JavaScript", "gift": ["100CNY", "1000CNY", "10000CNY"]])
 ```
-#####func sendDataToJS(_ data: SWVBData, responseCallback: SWVBResponseCallBack?)
+##### func sendDataToJS(_ data: SWVBData, responseCallback: SWVBResponseCallBack?)
 Send data to JS with callback closure
 
 ```
@@ -97,13 +97,13 @@ bridge.sendDataToJS("Did you received my gift, JS?", responseCallback: { data in
 	print("Receiving JS return gift: \(data)")
 })
 ```
-#####func callJSHandler(_ handlerName: String?, params: SWVBData?, responseCallback: SWVBResponseCallBack?)
+##### func callJSHandler(_ handlerName: String?, params: SWVBData?, responseCallback: SWVBResponseCallBack?)
 Call JavaScript registered handler
 
 ```
 bridge.callJSHandler("alertReceivedParmas", params: ["msg": "JS, are you there?"], responseCallback: nil)
 ```
-#####typealias mentioned above 
+##### typealias mentioned above 
 
 ```
 /// 1st param: responseData to JS
@@ -113,15 +113,15 @@ public typealias SWVBHandler = (AnyObject, @escaping SWVBResponseCallBack) -> Vo
 public typealias SWVBData = [String: Any]
 ```
 
-#####logging for debug
+##### logging for debug
 
 ```
 SwiftWebViewBridge.logging = false  //default true
 ```
 
-###For JavaScript
+### For JavaScript
 
-#####function init(defaultHandler)
+##### function init(defaultHandler)
 
 ```
 bridge.init(function(message, responseCallback) {
@@ -130,7 +130,7 @@ bridge.init(function(message, responseCallback) {
 	responseCallback(data)
 })
 ```
-#####function registerHandlerForSwift(handlerName, handler)
+##### function registerHandlerForSwift(handlerName, handler)
 
 ```
 bridge.registerHandlerForSwift('alertReceivedParmas', function(data, responseCallback) {
@@ -141,7 +141,7 @@ bridge.registerHandlerForSwift('alertReceivedParmas', function(data, responseCal
 })
 ```
 
-#####function sendDataToSwift(data, responseCallback)
+##### function sendDataToSwift(data, responseCallback)
 
 ```
 bridge.sendDataToSwift('Say Hello Swiftly to Swift')
@@ -150,7 +150,7 @@ bridge.sendDataToSwift('Hi, anybody there?', function(responseData){
 })
 ```
 
-#####function callSwiftHandler(handlerName, data, responseCallback)
+##### function callSwiftHandler(handlerName, data, responseCallback)
 
 ```
 SwiftWebViewBridge.callSwiftHandler("printReceivedParmas", {"name": "小明", "age": "6", "school": "GDUT"}, function(responseData){
