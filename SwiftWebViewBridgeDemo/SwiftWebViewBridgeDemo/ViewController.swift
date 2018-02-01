@@ -31,25 +31,23 @@ class ViewController: UIViewController {
     
     fileprivate var numOfLoadingRequest = 0
     
-    fileprivate var bridge: SwiftWebViewBridge!
+    fileprivate var bridge: SwiftJavascriptBridging!
     
     // MARK: LifeCycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        self.bridge = SwiftWebViewBridge.bridge(webView, defaultHandler: { data, responseCallback in
-            print("Swift received message from JS: \(data)")
-            // Actually, this responseCallback could be an empty closure when javascript has no callback, saving you from unwarping an optional parameter = )
-            // responseCallback is modified by @escaping
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.0) {
-                // Simulating the situation that needs to do some   asynchronous tasks
-                responseCallback(["msg": "Swift already got your msg, thanks"])
-            }
-        })
-        
-        //  SwiftJavaScriptBridge.logging = false
-        
+
+		self.bridge = SwiftWebViewBridge.bridge(uiWebView: webView, defaultHandler: { data, responseCallback in
+			print("Swift received message from JS: \(data)")
+			// Actually, this responseCallback could be an empty closure when javascript has no callback, saving you from unwarping an optional parameter = )
+			// responseCallback is modified by @escaping
+			DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.0) {
+				// Simulating the situation that needs to do some   asynchronous tasks
+				responseCallback(["msg": "Swift already got your msg, thanks"])
+			}
+		})
+		
         self.bridge.registerHandlerForJS(handlerName: "printReceivedParmas", handler: { [unowned self] jsonData, responseCallback in
             // if you used self in any bridge handler/callback closure, remember to declare weak or unowned self, preventing from retaining cycle!
             // Because VC owned bridge, brige owned this closure, and this cloure captured self!
@@ -68,6 +66,15 @@ class ViewController: UIViewController {
                      "10000CNY"
                     ]
         ])
+		
+		self.bridge.setLogCallback { logger in
+			switch logger {
+			case let .error(msg):
+				print("Error/报错/오류: \(msg)")
+			default:
+				print(logger)
+			}
+		}
         
         self.loadLocalWebPage()
     }
