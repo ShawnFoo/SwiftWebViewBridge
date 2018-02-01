@@ -7,6 +7,11 @@
 Swift version of [WebViewJavascriptBridge](https://github.com/marcuswestin/WebViewJavascriptBridge) with more simplified, friendly methods to send messages between Swift and JS in UIWebViews.
 
 ---
+#### ToDoList:
+[ ] WKWebView Support
+[ ] Carthage Installation
+
+---
 
 1. [Installation](#1)
 2. [Preview](#2)
